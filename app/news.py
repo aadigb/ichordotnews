@@ -8,7 +8,12 @@ BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
 
+def sanitize(text):
+    return (text or "").replace('\n', ' ').replace('\r', ' ').strip()
+
 def summarize_article(title, description):
+    title = sanitize(title)
+    description = sanitize(description)
     prompt = f"""Format this into a social-media style post.
 Only return:
 TITLE
