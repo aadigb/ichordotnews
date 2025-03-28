@@ -49,14 +49,13 @@ def search_news():
 def expand_news():
     content = request.json.get("content", "")
     if not content:
-        return jsonify({"full": "No content provided."})
-    
+        return jsonify({"full": "No content to expand."}), 400
     try:
-        full = petrichor.respond(f"Expand this article into a fully readable AI-generated post:\n\n{content}")
+        full = petrichor.respond(f"Expand this article into a full readable news piece:\n\n{content}")
         return jsonify({"full": full})
     except Exception as e:
         print(f"[ERROR] Expansion failed: {e}")
-        return jsonify({"full": content})
+        return jsonify({"full": "Error expanding article"}), 500
 
 
 
