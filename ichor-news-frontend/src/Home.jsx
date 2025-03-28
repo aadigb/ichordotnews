@@ -6,7 +6,6 @@ export default function Home() {
   const [filters, setFilters] = useState([]);
   const [filterInput, setFilterInput] = useState('');
   const [topic, setTopic] = useState('');
-  const [timeframe, setTimeframe] = useState('day');
   const [forYouNews, setForYouNews] = useState([]);
   const [searchNews, setSearchNews] = useState([]);
   const [forYouPage, setForYouPage] = useState(1);
@@ -22,33 +21,28 @@ export default function Home() {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
- useEffect(() => {
-  if (topic) fetchSearchNews(searchPage);
-}, [searchPage]);
-
+  useEffect(() => {
+    if (topic) fetchSearchNews(searchPage);
+  }, [searchPage]);
 
   const fetchCuratedNews = async (page = 1) => {
     try {
-      const res = await axios.post('https://ichornews.onrender.com/api/news/curated', { filters, page });
+      const res = await axios.post('/api/news/curated', { filters, page });
       setForYouNews((prev) => [...prev, ...res.data]);
     } catch (err) {
       console.error('FYP fetch error:', err);
     }
   };
 
-const fetchSearchNews = async (page = 1) => {
-  try {
-    const res = await axios.post('/api/news/search', { 
-      topic, page: searchPage }
-                                );
-    );
-    console.log("Search results:", res.data);  // <-- Confirm this logs array
-    setSearchNews(prev => [...prev, ...res.data]);
-  } catch (err) {
-    console.error('Search fetch error:', err);
-  }
-};
-
+  const fetchSearchNews = async (page = 1) => {
+    try {
+      const res = await axios.post('/api/news/search', { topic, page });
+      console.log("Search results:", res.data);
+      setSearchNews(prev => [...prev, ...res.data]);
+    } catch (err) {
+      console.error('Search fetch error:', err);
+    }
+  };
 
   const handleScroll = (ref, callback) => {
     if (!ref.current) return;
@@ -61,8 +55,8 @@ const fetchSearchNews = async (page = 1) => {
 
   const handleArticleClick = async (article) => {
     try {
-      const full = await axios.post('https://ichornews.onrender.com/api/news/expand', { content: article.summary });
-      const img = await axios.post('https://ichornews.onrender.com/api/news/image', { prompt: article.title });
+      const full = await axios.post('/api/news/expand', { content: article.summary });
+      const img = await axios.post('/api/news/image', { prompt: article.title });
       setModal({ article, fullContent: full.data.full, image: img.data.image_url });
     } catch {
       alert("Error loading article.");
@@ -156,13 +150,15 @@ const fetchSearchNews = async (page = 1) => {
                   setSearchNews([]); setSearchPage(1);
                 }}
               />
-             
-              <button onClick={() => {
-  setSearchPage(1);
-  fetchSearchNews(1);
-}} className="bg-blue-600 text-white px-3 rounded">
-  Go
-</button>
+              <button
+                onClick={() => {
+                  setSearchPage(1);
+                  fetchSearchNews(1);
+                }}
+                className="bg-blue-600 text-white px-3 rounded"
+              >
+                Go
+              </button>
             </div>
           </div>
           {searchNews.map(renderArticle)}
