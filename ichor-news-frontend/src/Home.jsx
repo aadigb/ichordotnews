@@ -93,7 +93,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
-        <h1 className="text-2xl font-bold">📰 Ichor News</h1>
+        <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
@@ -109,7 +109,7 @@ export default function Home() {
           ref={forYouRef}
         >
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🧠 For You</h2>
+            <h2 className="text-xl font-semibold mb-2"> For You</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
@@ -145,7 +145,7 @@ export default function Home() {
           ref={searchRef}
         >
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🔍 Search</h2>
+            <h2 className="text-xl font-semibold mb-2">Search</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="flex-1 border px-2 py-1 dark:bg-gray-700 dark:text-white"
