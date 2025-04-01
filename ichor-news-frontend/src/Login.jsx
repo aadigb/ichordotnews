@@ -6,25 +6,35 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-  const [isDark, setIsDark] = useState(true); // Default to dark mode
+  const [isDark, setIsDark] = useState(() => {
+    const stored = localStorage.getItem('theme');
+    return stored === 'light' ? false : true;
+  });
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark); // FIXED: use html not body
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }, [isDark]);
 
   const handleSubmit = async () => {
     try {
       const endpoint = isRegistering ? '/api/register' : '/api/login';
       const res = await axios.post(endpoint, { username, password });
-      onLogin(res.data.username); // Pass user back to parent
+      onLogin(res.data.username);
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen transition-colors bg-gray-100 dark:bg-black text-black dark:text-white">
-      <div className="p-6 rounded shadow-lg w-full max-w-sm bg-white dark:bg-gray-800 transition-colors">
+    <div className={`flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-black transition-colors`}>
+      <div className={`p-6 rounded shadow-lg w-full max-w-sm bg-white dark:bg-gray-800 transition-colors`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">{isRegistering ? 'Register' : '🌱 Login'}</h2>
           <button
@@ -34,26 +44,29 @@ export default function Login({ onLogin }) {
             {isDark ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
+
         <input
-          className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-black dark:bg-gray-700 dark:text-white"
+          className={`w-full mb-2 px-3 py-2 border rounded focus:outline-none transition-colors ${isDark ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-black border-gray-300'}`}
           placeholder="Username"
           value={username}
           onChange={e => setUsername(e.target.value)}
         />
         <input
           type="password"
-          className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-black dark:bg-gray-700 dark:text-white"
+          className={`w-full mb-4 px-3 py-2 border rounded focus:outline-none transition-colors ${isDark ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-black border-gray-300'}`}
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
         {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2 transition"
         >
           {isRegistering ? 'Register' : 'Login'}
         </button>
+
         <button
           onClick={() => {
             setIsRegistering(!isRegistering);
