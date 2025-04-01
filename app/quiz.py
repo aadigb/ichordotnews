@@ -1,5 +1,7 @@
 import json
 import os
+
+# In-memory storage for user biases
 user_bias_store = {}
 
 def determine_bias(answers):
@@ -18,13 +20,13 @@ def store_user_bias(user_id, bias):
 def get_user_bias(user_id):
     return user_bias_store.get(user_id, "unknown")
 
-
+# Path to save preferences
 PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
 
 def save_user_preferences():
     try:
         with open(PREF_PATH, "w") as f:
-            json.dump(USER_PREFS, f, indent=2)
+            json.dump(user_bias_store, f, indent=2)
         print("[INFO] Saved user preferences.")
     except Exception as e:
         print(f"[ERROR] Could not save preferences: {e}")
