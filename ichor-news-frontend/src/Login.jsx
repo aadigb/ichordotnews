@@ -29,14 +29,14 @@ export default function Login({ onLogin }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Username"
-          className="w-full mb-3 px-3 py-2 bg-[#0d1117] border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-3 px-3 py-2 bg-[#0d1117] text-white placeholder-gray-400 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full mb-3 px-3 py-2 bg-[#0d1117] border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-3 px-3 py-2 bg-[#0d1117] text-white placeholder-gray-400 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         {error && <div className="text-red-400 text-sm mb-2">{error}</div>}
@@ -48,7 +48,7 @@ export default function Login({ onLogin }) {
           {isRegistering ? 'Register' : 'Login'}
         </button>
 
-        <p className="mt-3 text-sm text-center">
+        <p className="mt-3 text-sm text-center text-gray-300">
           {isRegistering ? (
             <>
               Already have an account?{' '}
