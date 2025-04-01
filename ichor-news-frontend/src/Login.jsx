@@ -7,15 +7,15 @@ export default function Login({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
-    try {
-      const endpoint = isRegistering ? '/api/register' : '/api/login';
-      const res = await axios.post(endpoint, { username, password });
-      onLogin(res.data.username);  // Will close modal and show main UI
-    } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong');
-    }
-  };
+const handleSubmit = async () => {
+  try {
+    const endpoint = isRegistering ? `${API_BASE}/api/register` : `${API_BASE}/api/login`;
+    const res = await axios.post(endpoint, { username, password });
+    onLogin(res.data.username);  // Will close modal and show main UI
+  } catch (err) {
+    setError(err.response?.data?.error || 'Something went wrong');
+  }
+};
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
