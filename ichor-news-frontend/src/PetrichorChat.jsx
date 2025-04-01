@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-export default function PetrichorChat({ isDarkMode }) {
+export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) {
   const [messages, setMessages] = useState([
-    { role: 'bot', content: 'Do you want to take a prefrence test to curate a page just for you?' }
+    { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you?' }
   ]);
   const [input, setInput] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
@@ -22,12 +22,8 @@ export default function PetrichorChat({ isDarkMode }) {
   ];
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -50,23 +46,30 @@ export default function PetrichorChat({ isDarkMode }) {
     if (quizStarted) {
       const updatedAnswers = [...quizAnswers, userInput];
       setQuizAnswers(updatedAnswers);
-
       const nextIndex = questionIndex + 1;
+
       if (nextIndex < quizQuestions.length) {
         setQuestionIndex(nextIndex);
         setMessages(prev => [...prev, { role: 'bot', content: quizQuestions[nextIndex] }]);
       } else {
         try {
-          const result = await axios.post('https://ichornews.onrender.com/api/quiz', {
+          const result = await axios.post('https://ichordotnews.onrender.com/api/quiz/submit', {
             answers: updatedAnswers,
-            user_id: crypto.randomUUID()
+            username
           });
-          setMessages(prev => [...prev, { role: 'bot', content: `Thanks! Your political leaning is: ${result.data.bias}` }]);
+          setMessages(prev => [
+            ...prev,
+            { role: 'bot', content: `Thanks! Your political leaning is: ${result.data.bias}` },
+            { role: 'bot', content: 'Generating your personalized For You page...' }
+          ]);
+          setQuizCompleted(true);
+          onQuizComplete(); // Callback to trigger personalized news fetch
         } catch (err) {
+          console.error(err);
           setMessages(prev => [...prev, { role: 'bot', content: 'Error evaluating bias. Try again later.' }]);
         }
+
         setQuizStarted(false);
-        setQuizCompleted(true);
         setQuestionIndex(0);
         setQuizAnswers([]);
       }
@@ -75,11 +78,13 @@ export default function PetrichorChat({ isDarkMode }) {
 
     if (quizCompleted) {
       try {
-        const response = await axios.post('https://ichornews.onrender.com/api/petrichor/chat', {
-          prompt: userInput
+        const response = await axios.post('https://ichordotnews.onrender.com/api/petrichor/chat', {
+          prompt: userInput,
+          username
         });
         setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
       } catch (err) {
+        console.error(err);
         setMessages(prev => [...prev, { role: 'bot', content: 'Oops! Something went wrong.' }]);
       }
     }
