@@ -12,11 +12,14 @@ export default function Home() {
   const [searchNews, setSearchNews] = useState([]);
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const [username, setUsername] = useState('');
   const [showLogin, setShowLogin] = useState(true);
   const [loginForm, setLoginForm] = useState({ username: '', password: '', isRegistering: false });
   const [authError, setAuthError] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const stored = localStorage.getItem('theme');
+    return stored ? stored === 'dark' : true; // Default to dark
+  });
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -108,32 +111,52 @@ export default function Home() {
 
   if (showLogin) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-sm">
-          <h2 className="text-xl font-bold mb-4">{loginForm.isRegistering ? 'Register' : 'Login'}</h2>
+      <div className="flex items-center justify-center min-h-screen transition-colors bg-gray-900 text-white">
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">{loginForm.isRegistering ? 'Register' : '🌱 Login'}</h2>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="text-sm border px-2 py-1 rounded"
+            >
+              {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+            </button>
+          </div>
           <input
-            className="w-full mb-2 px-3 py-2 border rounded dark:bg-gray-700"
+            className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black placeholder-gray-500"
             placeholder="Username"
             value={loginForm.username}
             onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
           />
           <input
             type="password"
-            className="w-full mb-4 px-3 py-2 border rounded dark:bg-gray-700"
+            className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black placeholder-gray-500"
             placeholder="Password"
             value={loginForm.password}
             onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
           />
           {authError && <div className="text-red-400 text-sm mb-2">{authError}</div>}
-          <button onClick={handleAuth} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2">
+          <button
+            onClick={handleAuth}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
+          >
             {loginForm.isRegistering ? 'Register' : 'Login'}
           </button>
-          <button
-            onClick={() => setLoginForm({ ...loginForm, isRegistering: !loginForm.isRegistering })}
-            className="text-sm text-blue-300"
-          >
-            {loginForm.isRegistering ? 'Already have an account? Login' : 'No account? Register'}
-          </button>
+          <p className="text-sm text-center mt-3">
+            {loginForm.isRegistering ? (
+              <>Already have an account?{' '}
+                <button className="text-blue-400 hover:underline" onClick={() => setLoginForm({ ...loginForm, isRegistering: false })}>
+                  Login
+                </button>
+              </>
+            ) : (
+              <>No account?{' '}
+                <button className="text-blue-400 hover:underline" onClick={() => setLoginForm({ ...loginForm, isRegistering: true })}>
+                  Register
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </div>
     );
