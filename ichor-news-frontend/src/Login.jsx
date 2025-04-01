@@ -6,50 +6,51 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'light' ? false : true);
+  const [isDark, setIsDark] = useState(true); // Default to dark
 
+  // Apply theme to <html> for Tailwind dark mode to work
   useEffect(() => {
     const root = document.documentElement;
-    if (isDark) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    root.classList.toggle('dark', isDark);
   }, [isDark]);
 
   const handleSubmit = async () => {
     try {
       const endpoint = isRegistering ? '/api/register' : '/api/login';
       const res = await axios.post(endpoint, { username, password });
-      onLogin(res.data.username); // Switch to Home
+      onLogin(res.data.username); // Pass user back to parent
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
     }
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
-      <div className={`p-6 rounded shadow-lg w-full max-w-sm transition-colors ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`flex items-center justify-center h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+      <div className={`p-6 rounded shadow-lg w-full max-w-sm transition-colors duration-300 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">{isRegistering ? 'Register' : '🌱 Login'}</h2>
-          <button onClick={() => setIsDark(!isDark)} className="text-sm border px-2 py-1 rounded">
+          <button
+            onClick={() => setIsDark(!isDark)}
+            className="text-sm border px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
             {isDark ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
 
         <input
-          className={`w-full mb-2 px-3 py-2 border rounded focus:outline-none transition-all 
-            ${isDark ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' : 'bg-white text-black border-gray-300 placeholder-gray-500'}`}
+          className={`w-full mb-2 px-3 py-2 border rounded transition-all duration-300 
+            ${isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'} 
+            dark:bg-gray-700 dark:text-white`}
           placeholder="Username"
           value={username}
           onChange={e => setUsername(e.target.value)}
         />
+
         <input
           type="password"
-          className={`w-full mb-4 px-3 py-2 border rounded focus:outline-none transition-all 
-            ${isDark ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' : 'bg-white text-black border-gray-300 placeholder-gray-500'}`}
+          className={`w-full mb-4 px-3 py-2 border rounded transition-all duration-300 
+            ${isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'} 
+            dark:bg-gray-700 dark:text-white`}
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
@@ -65,8 +66,11 @@ export default function Login({ onLogin }) {
         </button>
 
         <button
-          onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
-          className="text-sm text-blue-500"
+          onClick={() => {
+            setIsRegistering(!isRegistering);
+            setError('');
+          }}
+          className="text-sm text-blue-500 hover:underline"
         >
           {isRegistering ? 'Already have an account? Login' : 'No account? Register'}
         </button>
