@@ -28,7 +28,19 @@ def expand_news_article():
     return jsonify({ 'full': result })
 
 @main.route('/api/quiz/submit', methods=['POST'])
-def submit_quiz():
-    data = request.get_json()
-    result = handle_quiz_submission(data)
-    return jsonify(result)
+@app.route('/api/quiz/submit', methods=['POST'])
+def quiz_submit():
+    data = request.json
+    answers = data.get("answers", [])
+    username = data.get("username", "guest")
+
+    if not answers or len(answers) != 5:
+        return jsonify({"error": "Incomplete answers"}), 400
+
+    bias = evaluate_bias(answers)
+    USER_PREFS[username] = USER_PREFS.get(username, {})
+    USER_PREFS[username]["quizResults"] = bias
+
+    save_user_preferences()
+
+    return jsonify({"bias": bias})
