@@ -20,6 +20,19 @@ def get_search_news():
     news = fetch_search_news(topic, page)
     return jsonify(news)
 
+@app.route('/api/petrichor/chat', methods=['POST'])
+def petrichor_chat():
+    data = request.json
+    prompt = data.get("prompt", "")
+    username = data.get("username", "guest")
+
+    try:
+        response = petrichor.respond(prompt, username=username)
+        return jsonify({"response": response})
+    except Exception as e:
+        print(f"[ERROR] Chat error: {e}")
+        return jsonify({"error": "Something went wrong"}), 500
+
 @main.route('/api/news/expand', methods=['POST'])
 def expand_news_article():
     data = request.get_json()
