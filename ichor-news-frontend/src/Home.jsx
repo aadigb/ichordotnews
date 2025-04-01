@@ -69,18 +69,19 @@ export default function Home() {
     }
   };
 
- const extractHook = (summary) => {
+const extractHook = (summary) => {
   const hookLine = summary.split('\n')[1] || '';
-  return hookLine.replace(/^HOOK:\s*/i, '').trim();
+  return hookLine.replace(/HOOK:\s*/i, '').replace(/["“”]/g, '').trim();
 };
 
 const extractBody = (summary) => {
   const lines = summary.split('\n').slice(2);
-  if (lines[0]?.startsWith('SUMMARY:')) {
-    lines[0] = lines[0].replace(/^SUMMARY:\s*/i, '');
-  }
-  return lines.join('\n').trim();
+  const cleaned = lines.map(line =>
+    line.replace(/SUMMARY:\s*/i, '').replace(/HOOK:\s*/i, '').replace(/["“”]/g, '').trim()
+  );
+  return cleaned.join('\n').trim();
 };
+
 
 
   const handleTripleClick = (e) => {
