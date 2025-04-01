@@ -1,6 +1,6 @@
-
 import os
 import requests
+import json
 from datetime import datetime, timedelta
 from app.petrichor_agent import PetrichorAgent
 
@@ -8,8 +8,28 @@ NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
-def summarize_article(title, description):
+# Load user preferences from JSON
+PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
+try:
+    with open(PREF_PATH, "r") as f:
+        USER_PREFS = json.load(f)
+except Exception as e:
+    print(f"[WARN] Could not load user preferences: {e}")
+    USER_PREFS = {}
+
+def get_user_style(username):
+    """Returns user's preferred style from quiz/chat results."""
+    prefs = USER_PREFS.get(username, {})
+    quiz_style = prefs.get("quizResults", "")
+    chat_style = prefs.get("chatStyle", "")
+    style = f"Write in a style that reflects these preferences: {quiz_style}. {chat_style}".strip()
+    return style if style else "Write clearly and informatively."
+
+def summarize_article(title, description, username=None):
+    style_prompt = get_user_style(username)
     prompt = f"""Format this into a social-media style post.
+{style_prompt}
+
 Only return:
 TITLE
 HOOK
@@ -32,7 +52,7 @@ def expand_article(summary):
         print(f"[ERROR] Expansion failed: {e}")
         return "Error expanding article."
 
-def get_curated_news(filters, page=1):
+def get_curated_news(filters, page=1, username=None):
     if not filters or len(filters) < 3:
         return []
 
@@ -60,7 +80,7 @@ def get_curated_news(filters, page=1):
         desc = article.get("description") or article.get("content") or ""
         if not title and not desc:
             continue
-        summary = summarize_article(title, desc)
+        summary = summarize_article(title, desc, username=username)
         curated.append({
             "title": title,
             "summary": summary
@@ -68,7 +88,7 @@ def get_curated_news(filters, page=1):
 
     return curated
 
-def get_search_news(topic, page=1):
+def get_search_news(topic, page=1, username=None):
     params = {
         "qInTitle": topic,
         "pageSize": 5,
@@ -94,7 +114,7 @@ def get_search_news(topic, page=1):
     for article in articles:
         title = article.get("title", "")
         desc = article.get("description", "")
-        summary = summarize_article(title, desc)
+        summary = summarize_article(title, desc, username=username)
         results.append({
             "title": title,
             "summary": summary
