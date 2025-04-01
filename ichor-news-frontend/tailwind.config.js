@@ -1,6 +1,6 @@
 module.exports = {
   content: ['./src/**/*.{js,jsx}'],
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: 'class', 
   theme: {
     extend: {},
   },
