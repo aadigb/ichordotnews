@@ -70,14 +70,15 @@ export default function Home() {
   };
 
   const extractHook = (summary) => {
-    const lines = summary.split('\n');
-    return cleanLabel(lines[1] || '');
-  };
+  const lines = summary.split('\n');
+  return lines[1]?.replace(/^HOOK:\s*/i, '').trim() || '';
+};
 
-  const extractBody = (summary) => {
-    const lines = summary.split('\n').slice(2);
-    return cleanLabel(lines.join('\n'));
-  };
+const extractBody = (summary) => {
+  const lines = summary.split('\n').slice(2);
+  return lines.join('\n').replace(/^SUMMARY:\s*/i, '').trim();
+};
+
 
   const handleTripleClick = (e) => {
     if (e.detail === 3) {
