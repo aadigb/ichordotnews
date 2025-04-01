@@ -29,6 +29,10 @@ export default function Home() {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  const cleanLabel = (text) => {
+    return text.replace(/^(TITLE|HOOK|SUMMARY):\s*/i, '').trim();
+  };
+
   const addFilter = () => {
     const trimmed = filterInput.trim();
     if (trimmed && !filters.includes(trimmed)) {
@@ -65,8 +69,15 @@ export default function Home() {
     }
   };
 
-  const extractHook = (summary) => summary.split('\n')[1] || '';
-  const extractBody = (summary) => summary.split('\n').slice(2).join('\n');
+  const extractHook = (summary) => {
+    const lines = summary.split('\n');
+    return cleanLabel(lines[1] || '');
+  };
+
+  const extractBody = (summary) => {
+    const lines = summary.split('\n').slice(2);
+    return cleanLabel(lines.join('\n'));
+  };
 
   const handleTripleClick = (e) => {
     if (e.detail === 3) {
@@ -91,18 +102,12 @@ export default function Home() {
   };
 
   const renderArticle = (article, idx) => (
-    <div
-      key={idx}
-      className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8"
-    >
+    <div key={idx} className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8">
       <div className="max-w-xl w-full space-y-6">
-        <h2 className="text-3xl font-extrabold">{article.title}</h2>
+        <h2 className="text-3xl font-extrabold">{cleanLabel(article.title)}</h2>
         <p className="italic text-blue-500">{extractHook(article.summary)}</p>
         <p className="text-md leading-relaxed">{extractBody(article.summary)}</p>
-        <button
-          onClick={() => handleExpand(article)}
-          className="text-blue-600 hover:underline text-sm mt-2"
-        >
+        <button onClick={() => handleExpand(article)} className="text-blue-600 hover:underline text-sm mt-2">
           Expand
         </button>
       </div>
@@ -165,7 +170,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
-        <h1 className="text-2xl font-bold">🌱Ichor News</h1>
+        <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm">👤 {username}</span>
           <button
@@ -181,7 +186,7 @@ export default function Home() {
         {/* FOR YOU */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6" ref={forYouRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">For You</h2>
+            <h2 className="text-xl font-semibold mb-2">🧠 For You</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
@@ -190,13 +195,9 @@ export default function Home() {
                 onChange={(e) => setFilterInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addFilter()}
               />
-              <button onClick={addFilter} className="bg-blue-600 text-white px-3 rounded">
-                Add
-              </button>
+              <button onClick={addFilter} className="bg-blue-600 text-white px-3 rounded">Add</button>
               {filters.length >= 3 && (
-                <button onClick={fetchCuratedNews} className="bg-green-600 text-white px-3 rounded">
-                  Generate
-                </button>
+                <button onClick={fetchCuratedNews} className="bg-green-600 text-white px-3 rounded">Generate</button>
               )}
             </div>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -213,7 +214,7 @@ export default function Home() {
         {/* SEARCH */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6" ref={searchRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">Search</h2>
+            <h2 className="text-xl font-semibold mb-2">🔍 Search</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="flex-1 border px-2 py-1 dark:bg-gray-700 dark:text-white"
@@ -221,9 +222,7 @@ export default function Home() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
-              <button onClick={fetchSearchNews} className="bg-blue-600 text-white px-3 rounded">
-                Go
-              </button>
+              <button onClick={fetchSearchNews} className="bg-blue-600 text-white px-3 rounded">Go</button>
             </div>
           </div>
           {searchNews.map(renderArticle)}
@@ -237,8 +236,8 @@ export default function Home() {
           onClick={() => setModalArticle(null)}
         >
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold mb-2">{modalArticle.title}</h2>
-            <p className="whitespace-pre-wrap">{modalContent}</p>
+            <h2 className="text-2xl font-bold mb-2">{cleanLabel(modalArticle.title)}</h2>
+            <p className="whitespace-pre-wrap">{cleanLabel(modalContent)}</p>
             <button
               onClick={() => setModalArticle(null)}
               className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
