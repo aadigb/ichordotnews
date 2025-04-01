@@ -3,7 +3,6 @@ from flask_cors import CORS
 from app.routes import main
 from app.auth import auth
 
-
 def create_app():
     app = Flask(__name__)
     CORS(app)
