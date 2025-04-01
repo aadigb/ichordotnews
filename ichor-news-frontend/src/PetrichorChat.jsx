@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export default function PetrichorChat({ isDarkMode }) {
   const [messages, setMessages] = useState([
-    { role: 'bot', content: 'Do you want to take a bias quiz to curate a for you page?' }
+    { role: 'bot', content: 'Do you want to take a prefrence test to curate a page just for you?' }
   ]);
   const [input, setInput] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
