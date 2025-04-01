@@ -13,9 +13,13 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Login system
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -78,18 +82,20 @@ export default function Home() {
     }
   };
 
-  const handleAuth = async () => {
+  const handleLogin = async () => {
     try {
-      const endpoint = isRegistering ? '/api/register' : '/api/login';
-      const res = await axios.post(`${API_BASE}${endpoint}`, credentials);
+      const endpoint = isRegistering ? 'register' : 'login';
+      const res = await axios.post(`${API_BASE}/api/auth/${endpoint}`, {
+        username,
+        password
+      });
+      alert(res.data.message);
       if (res.data.success) {
         setIsLoggedIn(true);
-      } else {
-        alert(res.data.message || "Auth failed");
+        setCurrentUser(username);
       }
     } catch (err) {
-      alert("Authentication failed.");
-      console.error(err);
+      alert(err.response?.data?.message || 'Login failed');
     }
   };
 
@@ -117,44 +123,31 @@ export default function Home() {
 
   if (!isLoggedIn) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+      <div className="min-h-screen flex justify-center items-center bg-black text-white">
+        <div className="bg-gray-900 p-8 rounded shadow max-w-sm w-full">
           <h2 className="text-2xl font-bold mb-4 text-center">{isRegistering ? 'Register' : 'Login'}</h2>
           <input
             type="text"
             placeholder="Username"
-            value={credentials.username}
-            onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-            className="w-full px-3 py-2 mb-2 rounded bg-gray-700 border border-gray-600"
+            className="w-full mb-3 p-2 rounded bg-gray-800"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
-            value={credentials.password}
-            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-            className="w-full px-3 py-2 mb-4 rounded bg-gray-700 border border-gray-600"
+            className="w-full mb-3 p-2 rounded bg-gray-800"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <button
-            onClick={handleAuth}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-          >
+          <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
             {isRegistering ? 'Register' : 'Login'}
           </button>
-          <p className="mt-4 text-center text-sm">
+          <p className="text-center mt-4 text-sm">
             {isRegistering ? (
-              <>
-                Already have an account?{' '}
-                <button onClick={() => setIsRegistering(false)} className="text-blue-400 underline">
-                  Login
-                </button>
-              </>
+              <>Already have an account? <span className="underline cursor-pointer" onClick={() => setIsRegistering(false)}>Login here</span></>
             ) : (
-              <>
-                Don’t have an account?{' '}
-                <button onClick={() => setIsRegistering(true)} className="text-blue-400 underline">
-                  Register here
-                </button>
-              </>
+              <>Don’t have an account? <span className="underline cursor-pointer" onClick={() => setIsRegistering(true)}>Register here</span></>
             )}
           </p>
         </div>
@@ -166,12 +159,15 @@ export default function Home() {
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
         <h1 className="text-2xl font-bold">📰 Ichor News</h1>
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
-        >
-          {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-        </button>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-500 dark:text-gray-300">👤 {currentUser}</span>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
+          >
+            {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2">
