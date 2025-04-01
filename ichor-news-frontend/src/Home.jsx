@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import PetrichorChat from './PetrichorChat';
+import Login from './Login';
 
 const API_BASE = 'https://ichordotnews.onrender.com';
 
@@ -13,13 +14,7 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
-
-  // Login system
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState('');
+  const [user, setUser] = useState(null); // NEW: tracks logged in user
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -82,23 +77,6 @@ export default function Home() {
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      const endpoint = isRegistering ? 'register' : 'login';
-      const res = await axios.post(`${API_BASE}/api/auth/${endpoint}`, {
-        username,
-        password
-      });
-      alert(res.data.message);
-      if (res.data.success) {
-        setIsLoggedIn(true);
-        setCurrentUser(username);
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
-    }
-  };
-
   const buttonStyle = 'transform transition-transform active:scale-95';
 
   const renderArticle = (article, idx) => (
@@ -121,46 +99,17 @@ export default function Home() {
     </div>
   );
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex justify-center items-center bg-black text-white">
-        <div className="bg-gray-900 p-8 rounded shadow max-w-sm w-full">
-          <h2 className="text-2xl font-bold mb-4 text-center">{isRegistering ? 'Register' : 'Login'}</h2>
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full mb-3 p-2 rounded bg-gray-800"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-3 p-2 rounded bg-gray-800"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
-            {isRegistering ? 'Register' : 'Login'}
-          </button>
-          <p className="text-center mt-4 text-sm">
-            {isRegistering ? (
-              <>Already have an account? <span className="underline cursor-pointer" onClick={() => setIsRegistering(false)}>Login here</span></>
-            ) : (
-              <>Don’t have an account? <span className="underline cursor-pointer" onClick={() => setIsRegistering(true)}>Register here</span></>
-            )}
-          </p>
-        </div>
-      </div>
-    );
+  // If user is not logged in, show login screen
+  if (!user) {
+    return <Login onLogin={(username) => setUser(username)} />;
   }
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
         <h1 className="text-2xl font-bold">📰 Ichor News</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500 dark:text-gray-300">👤 {currentUser}</span>
+        <div className="flex gap-4 items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-300">👤 {user}</span>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
