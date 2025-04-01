@@ -1,14 +1,12 @@
 import os
 import requests
 import json
-from datetime import datetime, timedelta
 from app.petrichor_agent import PetrichorAgent
 
 NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
-# Load user preferences from JSON
 PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
 try:
     with open(PREF_PATH, "r") as f:
@@ -17,13 +15,22 @@ except Exception as e:
     print(f"[WARN] Could not load user preferences: {e}")
     USER_PREFS = {}
 
+def save_user_preferences():
+    try:
+        with open(PREF_PATH, "w") as f:
+            json.dump(USER_PREFS, f, indent=2)
+        print("[INFO] Saved user preferences.")
+    except Exception as e:
+        print(f"[ERROR] Could not save preferences: {e}")
+
 def get_user_style(username):
-    """Returns user's preferred style from quiz/chat results."""
     prefs = USER_PREFS.get(username, {})
     quiz_style = prefs.get("quizResults", "")
     chat_style = prefs.get("chatStyle", "")
-    style = f"Write in a style that reflects these preferences: {quiz_style}. {chat_style}".strip()
-    return style if style else "Write clearly and informatively."
+    style = f"You are a news writer. Reflect these political preferences: {quiz_style}."
+    if chat_style:
+        style += f" Adjust tone based on this guidance: {chat_style}."
+    return style.strip()
 
 def summarize_article(title, description, username=None):
     style_prompt = get_user_style(username)
@@ -103,9 +110,6 @@ def get_search_news(topic, page=1, username=None):
         res.raise_for_status()
         data = res.json()
         articles = data.get("articles", [])
-        if not articles:
-            print(f"[INFO] No search results for '{topic}'")
-            print(f"[DEBUG] Full API response: {data}")
     except Exception as e:
         print(f"[ERROR] News API error (search): {e}")
         return []
