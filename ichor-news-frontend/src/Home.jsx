@@ -142,7 +142,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
-        <h1 className="text-2xl font-bold">📰 Ichor News</h1>
+        <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm">👤 {username}</span>
           <button
@@ -158,7 +158,7 @@ export default function Home() {
         {/* FOR YOU */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6" ref={forYouRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🧠 For You</h2>
+            <h2 className="text-xl font-semibold mb-2">For You</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
@@ -190,7 +190,7 @@ export default function Home() {
         {/* SEARCH */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6" ref={searchRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🔍 Search</h2>
+            <h2 className="text-xl font-semibold mb-2">Search</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="flex-1 border px-2 py-1 dark:bg-gray-700 dark:text-white"
