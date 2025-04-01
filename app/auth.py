@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# In-memory user store (for production use a real DB)
+
 users = {}
 
 auth = Blueprint('auth', __name__)
