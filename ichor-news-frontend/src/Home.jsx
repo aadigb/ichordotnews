@@ -18,7 +18,7 @@ export default function Home() {
   const [authError, setAuthError] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const stored = localStorage.getItem('theme');
-    return stored ? stored === 'dark' : true; // Default to dark
+    return stored ? stored === 'dark' : true;
   });
 
   const forYouRef = useRef();
@@ -43,7 +43,11 @@ export default function Home() {
 
   const fetchCuratedNews = async () => {
     try {
-      const res = await axios.post(`${API_BASE}/api/news/curated`, { filters, page: 1 });
+      const res = await axios.post(`${API_BASE}/api/news/curated`, {
+        filters,
+        page: 1,
+        username
+      });
       setForYouNews(res.data);
     } catch (err) {
       console.error('Curated fetch error:', err);
@@ -52,10 +56,27 @@ export default function Home() {
 
   const fetchSearchNews = async () => {
     try {
-      const res = await axios.post(`${API_BASE}/api/news/search`, { topic, page: 1 });
+      const res = await axios.post(`${API_BASE}/api/news/search`, {
+        topic,
+        page: 1,
+        username
+      });
       setSearchNews(res.data);
     } catch (err) {
       console.error('Search fetch error:', err);
+    }
+  };
+
+  const fetchPersonalizedNews = async () => {
+    try {
+      const res = await axios.post(`${API_BASE}/api/news/curated`, {
+        filters,
+        page: 1,
+        username
+      });
+      setForYouNews(res.data);
+    } catch (err) {
+      console.error('Personalized fetch error:', err);
     }
   };
 
@@ -69,22 +90,21 @@ export default function Home() {
     }
   };
 
-const extractHook = (summary) => {
-  const hookLine = summary.split('\n')[1] || '';
-  return hookLine.replace(/HOOK:\s*/gi, '').replace(/["“”]/g, '').trim();
-};
+  const extractHook = (summary) => {
+    const hookLine = summary.split('\n')[1] || '';
+    return hookLine.replace(/HOOK:\s*/gi, '').replace(/["“”]/g, '').trim();
+  };
 
-const extractBody = (summary) => {
-  return summary
-    .split('\n')
-    .slice(2)
-    .join(' ')
-    .replace(/HOOK:\s*/gi, '')
-    .replace(/SUMMARY:\s*/gi, '')
-    .replace(/["“”]/g, '')
-    .trim();
-};
-
+  const extractBody = (summary) => {
+    return summary
+      .split('\n')
+      .slice(2)
+      .join(' ')
+      .replace(/HOOK:\s*/gi, '')
+      .replace(/SUMMARY:\s*/gi, '')
+      .replace(/["“”]/g, '')
+      .trim();
+  };
 
   const handleTripleClick = (e) => {
     if (e.detail === 3) {
@@ -127,10 +147,7 @@ const extractBody = (summary) => {
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">{loginForm.isRegistering ? 'Register' : '🌱 Login'}</h2>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="text-sm border px-2 py-1 rounded"
-            >
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded">
               {isDarkMode ? '☀️ Light' : '🌙 Dark'}
             </button>
           </div>
@@ -180,10 +197,7 @@ const extractBody = (summary) => {
         <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm">👤 {username}</span>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
-          >
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded dark:bg-gray-700">
             {isDarkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
@@ -238,25 +252,20 @@ const extractBody = (summary) => {
 
       {/* MODAL */}
       {modalArticle && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
-          onClick={() => setModalArticle(null)}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" onClick={() => setModalArticle(null)}>
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-bold mb-2">{cleanLabel(modalArticle.title)}</h2>
             <p className="whitespace-pre-wrap">{cleanLabel(modalContent)}</p>
-            <button
-              onClick={() => setModalArticle(null)}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-            >
+            <button onClick={() => setModalArticle(null)} className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
               Close
             </button>
           </div>
         </div>
       )}
 
+      {/* CHAT */}
       <div className="fixed bottom-6 right-6 w-full max-w-sm z-50">
-        <PetrichorChat isDarkMode={isDarkMode} />
+        <PetrichorChat isDarkMode={isDarkMode} username={username} onQuizComplete={fetchPersonalizedNews} />
       </div>
     </main>
   );
