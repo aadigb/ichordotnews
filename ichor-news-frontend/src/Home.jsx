@@ -13,6 +13,10 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [user, setUser] = useState(null);
+  const [authMode, setAuthMode] = useState('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -75,6 +79,20 @@ export default function Home() {
     }
   };
 
+  const handleAuth = async () => {
+    try {
+      const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
+      const res = await axios.post(`${API_BASE}${endpoint}`, { username, password });
+      if (res.data.success) {
+        setUser(username);
+      } else {
+        alert(res.data.message || 'Authentication failed.');
+      }
+    } catch (err) {
+      alert('Error during authentication');
+    }
+  };
+
   const buttonStyle = 'transform transition-transform active:scale-95';
 
   const renderArticle = (article, idx) => (
@@ -96,6 +114,38 @@ export default function Home() {
       </div>
     </div>
   );
+
+  if (!user) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-80 space-y-4 text-center">
+          <h2 className="text-2xl font-bold">{authMode === 'login' ? 'Login' : 'Register'}</h2>
+          <input
+            className="w-full border px-3 py-2 rounded dark:bg-gray-700 dark:text-white"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            className="w-full border px-3 py-2 rounded dark:bg-gray-700 dark:text-white"
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button onClick={handleAuth} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+            {authMode === 'login' ? 'Login' : 'Register'}
+          </button>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {authMode === 'login' ? "Don't have an account?" : 'Already registered?'}{' '}
+            <span onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-blue-500 cursor-pointer underline">
+              {authMode === 'login' ? 'Register here' : 'Login here'}
+            </span>
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
