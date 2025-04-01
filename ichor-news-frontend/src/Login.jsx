@@ -6,52 +6,40 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [isDark, setIsDark] = useState(true); // Default to dark
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    document.body.classList.toggle('dark', isDark);
+  }, [isDark]);
 
   const handleSubmit = async () => {
     try {
       const endpoint = isRegistering ? '/api/register' : '/api/login';
       const res = await axios.post(endpoint, { username, password });
-      onLogin(res.data.username);
+      onLogin(res.data.username); // Pass user back to parent
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
     }
   };
 
-  const inputStyle = 'w-full mb-3 px-3 py-2 border rounded focus:outline-none dark:bg-gray-700 dark:text-white bg-white text-black';
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-black text-black dark:text-white">
-      <div className="absolute top-4 right-6">
-        <button
-          onClick={() => setIsDarkMode(prev => !prev)}
-          className="text-lg px-3 py-1 border rounded dark:bg-gray-700"
-        >
-          {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-        </button>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-sm">
-        <h2 className="text-xl font-bold mb-4">{isRegistering ? 'Register' : 'Login'}</h2>
+    <div className={`flex flex-col items-center justify-center h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+      <div className={`p-6 rounded shadow-lg w-full max-w-sm transition-colors ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">{isRegistering ? 'Register' : '🌱 Login'}</h2>
+          <button onClick={() => setIsDark(!isDark)} className="text-sm border px-2 py-1 rounded">
+            {isDark ? '☀️ Light' : '🌙 Dark'}
+          </button>
+        </div>
         <input
-          className={inputStyle}
+          className={`w-full mb-2 px-3 py-2 border rounded ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-black'}`}
           placeholder="Username"
           value={username}
           onChange={e => setUsername(e.target.value)}
         />
         <input
           type="password"
-          className={inputStyle}
+          className={`w-full mb-4 px-3 py-2 border rounded ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-black'}`}
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
@@ -59,15 +47,12 @@ export default function Login({ onLogin }) {
         {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2 transition-all"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2"
         >
           {isRegistering ? 'Register' : 'Login'}
         </button>
         <button
-          onClick={() => {
-            setIsRegistering(!isRegistering);
-            setError('');
-          }}
+          onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
           className="text-sm text-blue-500"
         >
           {isRegistering ? 'Already have an account? Login' : 'No account? Register'}
