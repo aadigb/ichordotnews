@@ -76,7 +76,10 @@ export default function Home() {
 
 const extractBody = (summary) => {
   const lines = summary.split('\n').slice(2);
-  return lines.join('\n').replace(/^SUMMARY:\s*/i, '').trim();
+  if (lines[0]?.startsWith('SUMMARY:')) {
+    lines[0] = lines[0].replace(/^SUMMARY:\s*/i, '');
+  }
+  return lines.join('\n').trim();
 };
 
 
