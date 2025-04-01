@@ -7,48 +7,58 @@ export default function Login({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
 
-const handleSubmit = async () => {
-  try {
-    const endpoint = isRegistering ? `${API_BASE}/api/register` : `${API_BASE}/api/login`;
-    const res = await axios.post(endpoint, { username, password });
-    onLogin(res.data.username);  // Will close modal and show main UI
-  } catch (err) {
-    setError(err.response?.data?.error || 'Something went wrong');
-  }
-};
+  const handleSubmit = async () => {
+    try {
+      const endpoint = isRegistering ? '/api/register' : '/api/login';
+      const res = await axios.post(endpoint, { username, password });
+      onLogin(res.data.username);  // Pass username up
+    } catch (err) {
+      setError(err.response?.data?.error || 'Something went wrong');
+    }
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm">
-        <h2 className="text-xl font-bold mb-4 text-center">{isRegistering ? 'Register' : 'Login'}</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <h2 className="text-xl font-bold mb-4">{isRegistering ? 'Register' : 'Login'}</h2>
+
         <input
-          className="w-full mb-2 px-3 py-2 border rounded dark:bg-gray-700"
+          className="w-full mb-3 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
           placeholder="Username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={e => setUsername(e.target.value)}
         />
         <input
           type="password"
-          className="w-full mb-4 px-3 py-2 border rounded dark:bg-gray-700"
+          className="w-full mb-3 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
         />
-        {error && <div className="text-red-500 text-sm mb-2 text-center">{error}</div>}
+
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
         >
           {isRegistering ? 'Register' : 'Login'}
         </button>
-        <p className="text-center text-sm">
-          {isRegistering ? "Already have an account?" : "Don't have an account?"}
-          <button
-            onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
-            className="ml-1 text-blue-500 hover:underline"
-          >
-            {isRegistering ? 'Login here' : 'Register here'}
-          </button>
+
+        <p className="text-sm text-center mt-3">
+          {isRegistering ? (
+            <>Already have an account?{' '}
+              <button className="text-blue-400 hover:underline" onClick={() => { setIsRegistering(false); setError(''); }}>
+                Login
+              </button>
+            </>
+          ) : (
+            <>No account?{' '}
+              <button className="text-blue-400 hover:underline" onClick={() => { setIsRegistering(true); setError(''); }}>
+                Register
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>
