@@ -1,3 +1,3 @@
-# ichornews
+ichhor.news
 
-add -- time , fyp , openaiagents if possible , filters
+News Website built for the agentic economy
