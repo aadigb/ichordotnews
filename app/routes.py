@@ -1,26 +1,37 @@
 from flask import Blueprint, request, jsonify
-from app.news import get_curated_news, get_search_news, expand_article
-from app.quiz import get_user_bias
+from app.news import get_curated_news as fetch_curated_news, get_search_news as fetch_search_news, expand_article
+from app.quiz import evaluate_bias, save_user_preferences, USER_PREFS
+from app.petrichor_agent import PetrichorAgent
 
 main = Blueprint('main', __name__)
+petrichor = PetrichorAgent()
 
 @main.route('/api/news/curated', methods=['POST'])
-def get_curated_news():
+def curated_news_route():
     data = request.get_json()
     filters = data.get('filters', [])
     page = data.get('page', 1)
-    news = fetch_curated_news(filters, page)
+    username = data.get('username', 'guest')
+    news = fetch_curated_news(filters, page, username)
     return jsonify(news)
 
 @main.route('/api/news/search', methods=['POST'])
-def get_search_news():
+def search_news_route():
     data = request.get_json()
     topic = data.get('topic', '')
     page = data.get('page', 1)
-    news = fetch_search_news(topic, page)
+    username = data.get('username', 'guest')
+    news = fetch_search_news(topic, page, username)
     return jsonify(news)
 
-@app.route('/api/petrichor/chat', methods=['POST'])
+@main.route('/api/news/expand', methods=['POST'])
+def expand_news_article():
+    data = request.get_json()
+    content = data.get('content', '')
+    result = expand_article(content)
+    return jsonify({ 'full': result })
+
+@main.route('/api/petrichor/chat', methods=['POST'])
 def petrichor_chat():
     data = request.json
     prompt = data.get("prompt", "")
@@ -33,15 +44,7 @@ def petrichor_chat():
         print(f"[ERROR] Chat error: {e}")
         return jsonify({"error": "Something went wrong"}), 500
 
-@main.route('/api/news/expand', methods=['POST'])
-def expand_news_article():
-    data = request.get_json()
-    content = data.get('content', '')
-    result = expand_article(content)
-    return jsonify({ 'full': result })
-
 @main.route('/api/quiz/submit', methods=['POST'])
-@app.route('/api/quiz/submit', methods=['POST'])
 def quiz_submit():
     data = request.json
     answers = data.get("answers", [])
