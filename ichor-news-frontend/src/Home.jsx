@@ -69,9 +69,9 @@ export default function Home() {
     }
   };
 
-  const extractHook = (summary) => {
-  const lines = summary.split('\n');
-  return lines[1]?.replace(/^HOOK:\s*/i, '').trim() || '';
+ const extractHook = (summary) => {
+  const hookLine = summary.split('\n')[1] || '';
+  return hookLine.replace(/^HOOK:\s*/i, '').trim();
 };
 
 const extractBody = (summary) => {
