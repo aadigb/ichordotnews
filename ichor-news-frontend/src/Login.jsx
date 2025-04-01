@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function Login({ onLogin }) {
@@ -6,6 +6,17 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const handleSubmit = async () => {
     try {
@@ -17,66 +28,50 @@ export default function Login({ onLogin }) {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-white">
-      <div className="bg-[#161b22] p-6 rounded-lg shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
-          {isRegistering ? 'Register' : 'Login'}
-        </h2>
+  const inputStyle = 'w-full mb-3 px-3 py-2 border rounded focus:outline-none dark:bg-gray-700 dark:text-white bg-white text-black';
 
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-black text-black dark:text-white">
+      <div className="absolute top-4 right-6">
+        <button
+          onClick={() => setIsDarkMode(prev => !prev)}
+          className="text-lg px-3 py-1 border rounded dark:bg-gray-700"
+        >
+          {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+        </button>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-sm">
+        <h2 className="text-xl font-bold mb-4">{isRegistering ? 'Register' : 'Login'}</h2>
         <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          className={inputStyle}
           placeholder="Username"
-          className="w-full mb-3 px-3 py-2 bg-[#0d1117] text-white placeholder-gray-400 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
         />
         <input
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          className={inputStyle}
           placeholder="Password"
-          className="w-full mb-3 px-3 py-2 bg-[#0d1117] text-white placeholder-gray-400 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
         />
-
-        {error && <div className="text-red-400 text-sm mb-2">{error}</div>}
-
+        {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition duration-150"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2 transition-all"
         >
           {isRegistering ? 'Register' : 'Login'}
         </button>
-
-        <p className="mt-3 text-sm text-center text-gray-300">
-          {isRegistering ? (
-            <>
-              Already have an account?{' '}
-              <button
-                onClick={() => {
-                  setIsRegistering(false);
-                  setError('');
-                }}
-                className="text-blue-400 hover:underline"
-              >
-                🌱Login
-              </button>
-            </>
-          ) : (
-            <>
-              No account?{' '}
-              <button
-                onClick={() => {
-                  setIsRegistering(true);
-                  setError('');
-                }}
-                className="text-blue-400 hover:underline"
-              >
-                Register
-              </button>
-            </>
-          )}
-        </p>
+        <button
+          onClick={() => {
+            setIsRegistering(!isRegistering);
+            setError('');
+          }}
+          className="text-sm text-blue-500"
+        >
+          {isRegistering ? 'Already have an account? Login' : 'No account? Register'}
+        </button>
       </div>
     </div>
   );
