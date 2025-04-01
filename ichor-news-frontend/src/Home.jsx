@@ -12,7 +12,6 @@ export default function Home() {
   const [searchNews, setSearchNews] = useState([]);
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
-  const [modalImage, setModalImage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
   const forYouRef = useRef();
@@ -52,13 +51,21 @@ export default function Home() {
   const handleExpand = async (article) => {
     try {
       const full = await axios.post(`${API_BASE}/api/news/expand`, { content: article.summary });
-      const img = await axios.post(`${API_BASE}/api/news/image`, { prompt: article.title });
       setModalArticle(article);
       setModalContent(full.data.full);
-      setModalImage(img.data.image_url);
     } catch (err) {
       alert("Error loading article.");
     }
+  };
+
+  const extractHook = (summary) => {
+    const lines = summary.split('\n');
+    return lines[1] || '';
+  };
+
+  const extractBody = (summary) => {
+    const lines = summary.split('\n');
+    return lines.slice(2).join('\n');
   };
 
   const handleTripleClick = (e) => {
@@ -78,11 +85,11 @@ export default function Home() {
     >
       <div className="max-w-xl w-full space-y-6">
         <h2 className="text-3xl font-extrabold">{article.title}</h2>
-        <p className="italic text-lg text-blue-500">{article.summary.split('\n')[1]}</p>
-        <p className="text-md leading-relaxed">{article.summary.split('\n').slice(2).join('\n')}</p>
+        <p className="italic text-blue-500">{extractHook(article.summary)}</p>
+        <p className="text-md leading-relaxed">{extractBody(article.summary)}</p>
         <button
           onClick={() => handleExpand(article)}
-          className="text-blue-500 underline text-sm mt-2 active:scale-95"
+          className="text-blue-600 hover:underline text-sm mt-2"
         >
           Expand
         </button>
@@ -93,7 +100,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
-        <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
+        <h1 className="text-2xl font-bold">📰 Ichor News</h1>
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
@@ -104,12 +111,9 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* FOR YOU */}
-        <div
-          className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6"
-          ref={forYouRef}
-        >
+        <div className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6" ref={forYouRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2"> For You</h2>
+            <h2 className="text-xl font-semibold mb-2">🧠 For You</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
@@ -121,16 +125,15 @@ export default function Home() {
               <button onClick={addFilter} className={`${buttonStyle} bg-blue-600 text-white px-3 rounded`}>
                 Add
               </button>
-              <button
-                onClick={fetchCuratedNews}
-                className={`${buttonStyle} bg-green-600 text-white px-3 rounded`}
-              >
-                Generate
-              </button>
+              {filters.length >= 3 && (
+                <button onClick={fetchCuratedNews} className={`${buttonStyle} bg-green-600 text-white px-3 rounded`}>
+                  Generate
+                </button>
+              )}
             </div>
-            <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               {filters.map((f, i) => (
-                <span key={i} className="text-sm bg-blue-200 px-2 py-1 rounded-full mr-2 dark:bg-blue-800">
+                <span key={i} className="bg-blue-200 dark:bg-blue-700 px-2 py-1 rounded-full text-sm">
                   {f} <button onClick={() => setFilters(filters.filter(x => x !== f))}>×</button>
                 </span>
               ))}
@@ -140,12 +143,9 @@ export default function Home() {
         </div>
 
         {/* SEARCH */}
-        <div
-          className="h-screen overflow-y-scroll snap-y snap-mandatory px-6"
-          ref={searchRef}
-        >
+        <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6" ref={searchRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">Search</h2>
+            <h2 className="text-xl font-semibold mb-2">🔍 Search</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="flex-1 border px-2 py-1 dark:bg-gray-700 dark:text-white"
@@ -164,19 +164,19 @@ export default function Home() {
 
       {/* MODAL */}
       {modalArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-8">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl w-full relative overflow-y-auto max-h-[90vh]">
-            <button
-              onClick={() => setModalArticle(null)}
-              className="absolute top-2 right-4 text-red-600 text-xl font-bold"
-            >
-              ✕
-            </button>
-            {modalImage && (
-              <img src={modalImage} alt="Generated" className="w-full mb-4 rounded" />
-            )}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
+          onClick={() => setModalArticle(null)}
+        >
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-bold mb-2">{modalArticle.title}</h2>
             <p className="whitespace-pre-wrap">{modalContent}</p>
+            <button
+              onClick={() => setModalArticle(null)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
