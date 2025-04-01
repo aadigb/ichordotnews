@@ -1,25 +1,24 @@
-
 import os
-from openai import OpenAI
-from dotenv import load_dotenv
-
-load_dotenv()
+import openai
 
 class PetrichorAgent:
     def __init__(self):
-        api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=api_key)
+        self.model = "gpt-4"
+        self.api_key = os.getenv("OPENAI_API_KEY")
 
-    def respond(self, prompt: str) -> str:
+    def respond(self, prompt):
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4",
+            openai.api_key = self.api_key
+            response = openai.ChatCompletion.create(
+                model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are Petrichor, a helpful and unbiased political news assistant."},
+                    {"role": "system", "content": "You are a helpful news summarizer."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7
+                temperature=0.7,
+                max_tokens=800
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            return f"Error: {str(e)}"
+            print(f"[ERROR] PetrichorAgent failed: {e}")
+            return "Error generating response."
