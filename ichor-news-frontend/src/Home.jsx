@@ -13,10 +13,9 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
-  const [user, setUser] = useState(null);
-  const [authMode, setAuthMode] = useState('login');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -81,15 +80,16 @@ export default function Home() {
 
   const handleAuth = async () => {
     try {
-      const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
-      const res = await axios.post(`${API_BASE}${endpoint}`, { username, password });
+      const endpoint = isRegistering ? '/api/register' : '/api/login';
+      const res = await axios.post(`${API_BASE}${endpoint}`, credentials);
       if (res.data.success) {
-        setUser(username);
+        setIsLoggedIn(true);
       } else {
-        alert(res.data.message || 'Authentication failed.');
+        alert(res.data.message || "Auth failed");
       }
     } catch (err) {
-      alert('Error during authentication');
+      alert("Authentication failed.");
+      console.error(err);
     }
   };
 
@@ -115,35 +115,50 @@ export default function Home() {
     </div>
   );
 
-  if (!user) {
+  if (!isLoggedIn) {
     return (
-      <main className="h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-80 space-y-4 text-center">
-          <h2 className="text-2xl font-bold">{authMode === 'login' ? 'Login' : 'Register'}</h2>
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        <div className="bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-center">{isRegistering ? 'Register' : 'Login'}</h2>
           <input
-            className="w-full border px-3 py-2 rounded dark:bg-gray-700 dark:text-white"
+            type="text"
             placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={credentials.username}
+            onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+            className="w-full px-3 py-2 mb-2 rounded bg-gray-700 border border-gray-600"
           />
           <input
-            className="w-full border px-3 py-2 rounded dark:bg-gray-700 dark:text-white"
-            placeholder="Password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            value={credentials.password}
+            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            className="w-full px-3 py-2 mb-4 rounded bg-gray-700 border border-gray-600"
           />
-          <button onClick={handleAuth} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-            {authMode === 'login' ? 'Login' : 'Register'}
+          <button
+            onClick={handleAuth}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+          >
+            {isRegistering ? 'Register' : 'Login'}
           </button>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {authMode === 'login' ? "Don't have an account?" : 'Already registered?'}{' '}
-            <span onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-blue-500 cursor-pointer underline">
-              {authMode === 'login' ? 'Register here' : 'Login here'}
-            </span>
+          <p className="mt-4 text-center text-sm">
+            {isRegistering ? (
+              <>
+                Already have an account?{' '}
+                <button onClick={() => setIsRegistering(false)} className="text-blue-400 underline">
+                  Login
+                </button>
+              </>
+            ) : (
+              <>
+                Don’t have an account?{' '}
+                <button onClick={() => setIsRegistering(true)} className="text-blue-400 underline">
+                  Register here
+                </button>
+              </>
+            )}
           </p>
         </div>
-      </main>
+      </div>
     );
   }
 
