@@ -60,7 +60,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           setMessages(prev => [
             ...prev,
             { role: 'bot', content: `Thanks! Your political leaning is: ${result.data.bias}` },
-            { role: 'bot', content: 'Generating your personalized For You page...' }
+            { role: 'bot', content: 'Generating your personalized For You page, make sure to add 3 filters...' }
           ]);
           setQuizCompleted(true);
           onQuizComplete(); // Callback to trigger personalized news fetch
