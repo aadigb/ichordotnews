@@ -71,17 +71,19 @@ export default function Home() {
 
 const extractHook = (summary) => {
   const hookLine = summary.split('\n')[1] || '';
-  return hookLine.replace(/HOOK:\s*/i, '').replace(/["“”]/g, '').trim();
+  return hookLine.replace(/HOOK:\s*/gi, '').replace(/["“”]/g, '').trim();
 };
 
 const extractBody = (summary) => {
-  const lines = summary.split('\n').slice(2);
-  const cleaned = lines.map(line =>
-    line.replace(/SUMMARY:\s*/i, '').replace(/HOOK:\s*/i, '').replace(/["“”]/g, '').trim()
-  );
-  return cleaned.join('\n').trim();
+  return summary
+    .split('\n')
+    .slice(2)
+    .join(' ')
+    .replace(/HOOK:\s*/gi, '')
+    .replace(/SUMMARY:\s*/gi, '')
+    .replace(/["“”]/g, '')
+    .trim();
 };
-
 
 
   const handleTripleClick = (e) => {
