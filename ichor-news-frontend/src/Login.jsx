@@ -22,20 +22,21 @@ export default function Login({ onLogin }) {
       <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
         <h2 className="text-xl font-bold mb-4">{isRegistering ? 'Register' : 'Login'}</h2>
 
-        <input
-          className="w-full mb-3 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-black placeholder-gray-400"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
+      <input
+  className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black dark:text-black placeholder-gray-500"
+  placeholder="Username"
+  value={username}
+  onChange={e => setUsername(e.target.value)}
+/>
 
-        <input
-          type="password"
-          className="w-full mb-3 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-black placeholder-gray-400"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
+<input
+  type="password"
+  className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black dark:text-black placeholder-gray-500"
+  placeholder="Password"
+  value={password}
+  onChange={e => setPassword(e.target.value)}
+/>
+
 
         {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
