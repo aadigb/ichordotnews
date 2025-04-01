@@ -193,7 +193,7 @@ const extractBody = (summary) => {
         {/* FOR YOU */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6" ref={forYouRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🧠 For You</h2>
+            <h2 className="text-xl font-semibold mb-2">For You</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
@@ -221,7 +221,7 @@ const extractBody = (summary) => {
         {/* SEARCH */}
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6" ref={searchRef}>
           <div className="py-4">
-            <h2 className="text-xl font-semibold mb-2">🔍 Search</h2>
+            <h2 className="text-xl font-semibold mb-2">Search</h2>
             <div className="flex gap-2 mb-2">
               <input
                 className="flex-1 border px-2 py-1 dark:bg-gray-700 dark:text-white"
