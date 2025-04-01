@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.news import get_curated_news as fetch_curated_news, get_search_news as fetch_search_news, expand_article
-from app.quiz import get_user_bias, save_user_preferences, USER_PREFS, determine_bias, store_user_bias
+from app.quiz import get_user_bias, store_user_bias, save_user_preferences, determine_bias
 from app.petrichor_agent import PetrichorAgent
 
 main = Blueprint('main', __name__)
