@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import PetrichorChat from './PetrichorChat';
-import Login from './Login';
 
 const API_BASE = 'https://ichordotnews.onrender.com';
 
@@ -14,7 +13,10 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
-  const [user, setUser] = useState(null); // NEW: tracks logged in user
+  const [username, setUsername] = useState('');
+  const [showLogin, setShowLogin] = useState(true);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '', isRegistering: false });
+  const [authError, setAuthError] = useState('');
 
   const forYouRef = useRef();
   const searchRef = useRef();
@@ -60,15 +62,8 @@ export default function Home() {
     }
   };
 
-  const extractHook = (summary) => {
-    const lines = summary.split('\n');
-    return lines[1] || '';
-  };
-
-  const extractBody = (summary) => {
-    const lines = summary.split('\n');
-    return lines.slice(2).join('\n');
-  };
+  const extractHook = (summary) => summary.split('\n')[1] || '';
+  const extractBody = (summary) => summary.split('\n').slice(2).join('\n');
 
   const handleTripleClick = (e) => {
     if (e.detail === 3) {
@@ -77,13 +72,25 @@ export default function Home() {
     }
   };
 
-  const buttonStyle = 'transform transition-transform active:scale-95';
+  const handleAuth = async () => {
+    try {
+      const endpoint = loginForm.isRegistering ? '/api/register' : '/api/login';
+      const res = await axios.post(`${API_BASE}${endpoint}`, {
+        username: loginForm.username,
+        password: loginForm.password
+      });
+      setUsername(res.data.username);
+      setShowLogin(false);
+    } catch (err) {
+      alert('Login failed');
+      setAuthError(err.response?.data?.error || 'Authentication failed');
+    }
+  };
 
   const renderArticle = (article, idx) => (
     <div
       key={idx}
-      className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8 cursor-pointer"
-      onDoubleClick={() => handleExpand(article)}
+      className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8"
     >
       <div className="max-w-xl w-full space-y-6">
         <h2 className="text-3xl font-extrabold">{article.title}</h2>
@@ -99,20 +106,48 @@ export default function Home() {
     </div>
   );
 
-  // If user is not logged in, show login screen
-  if (!user) {
-    return <Login onLogin={(username) => setUser(username)} />;
+  if (showLogin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+        <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-sm">
+          <h2 className="text-xl font-bold mb-4">{loginForm.isRegistering ? 'Register' : 'Login'}</h2>
+          <input
+            className="w-full mb-2 px-3 py-2 border rounded dark:bg-gray-700"
+            placeholder="Username"
+            value={loginForm.username}
+            onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
+          />
+          <input
+            type="password"
+            className="w-full mb-4 px-3 py-2 border rounded dark:bg-gray-700"
+            placeholder="Password"
+            value={loginForm.password}
+            onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
+          />
+          {authError && <div className="text-red-400 text-sm mb-2">{authError}</div>}
+          <button onClick={handleAuth} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2">
+            {loginForm.isRegistering ? 'Register' : 'Login'}
+          </button>
+          <button
+            onClick={() => setLoginForm({ ...loginForm, isRegistering: !loginForm.isRegistering })}
+            className="text-sm text-blue-300"
+          >
+            {loginForm.isRegistering ? 'Already have an account? Login' : 'No account? Register'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans" onClick={handleTripleClick}>
+    <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white" onClick={handleTripleClick}>
       <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
         <h1 className="text-2xl font-bold">📰 Ichor News</h1>
-        <div className="flex gap-4 items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-300">👤 {user}</span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm">👤 {username}</span>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`${buttonStyle} text-sm border px-2 py-1 rounded dark:bg-gray-700`}
+            className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
           >
             {isDarkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
@@ -132,11 +167,11 @@ export default function Home() {
                 onChange={(e) => setFilterInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addFilter()}
               />
-              <button onClick={addFilter} className={`${buttonStyle} bg-blue-600 text-white px-3 rounded`}>
+              <button onClick={addFilter} className="bg-blue-600 text-white px-3 rounded">
                 Add
               </button>
               {filters.length >= 3 && (
-                <button onClick={fetchCuratedNews} className={`${buttonStyle} bg-green-600 text-white px-3 rounded`}>
+                <button onClick={fetchCuratedNews} className="bg-green-600 text-white px-3 rounded">
                   Generate
                 </button>
               )}
@@ -163,7 +198,7 @@ export default function Home() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
-              <button onClick={fetchSearchNews} className={`${buttonStyle} bg-blue-600 text-white px-3 rounded`}>
+              <button onClick={fetchSearchNews} className="bg-blue-600 text-white px-3 rounded">
                 Go
               </button>
             </div>
