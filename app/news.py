@@ -1,3 +1,4 @@
+
 import os
 import requests
 from datetime import datetime, timedelta
@@ -7,13 +8,7 @@ NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
-
-def sanitize(text):
-    return (text or "").replace('\n', ' ').replace('\r', ' ').strip()
-
 def summarize_article(title, description):
-    title = sanitize(title)
-    description = sanitize(description)
     prompt = f"""Format this into a social-media style post.
 Only return:
 TITLE
@@ -30,6 +25,12 @@ ARTICLE:
         print(f"[ERROR] GPT summarization failed: {e}")
         return f"{title}\n\n{description}"
 
+def expand_article(summary):
+    try:
+        return petrichor.respond(f"Expand this summary into a full readable news article:\n\n{summary}")
+    except Exception as e:
+        print(f"[ERROR] Expansion failed: {e}")
+        return "Error expanding article."
 
 def get_curated_news(filters, page=1):
     if not filters or len(filters) < 3:
@@ -57,10 +58,8 @@ def get_curated_news(filters, page=1):
     for article in articles:
         title = article.get("title") or article.get("source", {}).get("name", "Untitled")
         desc = article.get("description") or article.get("content") or ""
-
         if not title and not desc:
             continue
-
         summary = summarize_article(title, desc)
         curated.append({
             "title": title,
@@ -69,13 +68,12 @@ def get_curated_news(filters, page=1):
 
     return curated
 
-
 def get_search_news(topic, page=1):
     params = {
-        "q": topic,
+        "qInTitle": topic,
         "pageSize": 5,
         "page": int(page),
-        "sortBy": "relevancy",  # Or "publishedAt" if you want recent
+        "sortBy": "relevancy",
         "apiKey": NEWS_API_KEY,
         "language": "en"
     }
@@ -85,11 +83,9 @@ def get_search_news(topic, page=1):
         res.raise_for_status()
         data = res.json()
         articles = data.get("articles", [])
-
         if not articles:
             print(f"[INFO] No search results for '{topic}'")
             print(f"[DEBUG] Full API response: {data}")
-
     except Exception as e:
         print(f"[ERROR] News API error (search): {e}")
         return []
@@ -105,5 +101,3 @@ def get_search_news(topic, page=1):
         })
 
     return results
-
-
