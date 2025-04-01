@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.news import fetch_curated_news, fetch_search_news, expand_article
+from app.news import get_curated_news, get_search_news, expand_article
 from app.quiz import handle_quiz_submission
 
 main = Blueprint('main', __name__)
