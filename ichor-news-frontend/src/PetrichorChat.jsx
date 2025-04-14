@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-export default function PetrichorChat({ isDarkMode, username }) {
-  const [messages, setMessages] = useState([]);
+export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) {
+  const [messages, setMessages] = useState([
+    { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you?' }
+  ]);
   const [input, setInput] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState([]);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [checkedQuiz, setCheckedQuiz] = useState(false);
-
   const chatEndRef = useRef(null);
 
   const quizQuestions = [
@@ -22,28 +22,8 @@ export default function PetrichorChat({ isDarkMode, username }) {
   ];
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    if (!checkedQuiz && username) {
-      axios.get(`/api/user/bias/${username}`)
-        .then(res => {
-          const existingBias = res.data.bias;
-          if (existingBias && existingBias !== 'unknown') {
-            setMessages([{ role: 'bot', content: 'Add three filters to get your for you page, if you want to retake the quiz type "retake"' }]);
-            setQuizCompleted(true);
-          } else {
-            setMessages([{ role: 'bot', content: 'Do you want to take a preference quiz to curate your news feed?' }]);
-          }
-          setCheckedQuiz(true);
-        });
-    }
-  }, [checkedQuiz, username]);
-
-  const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -54,7 +34,7 @@ export default function PetrichorChat({ isDarkMode, username }) {
 
     if (!quizStarted && !quizCompleted) {
       if (['no', 'nah'].includes(userInput.toLowerCase())) {
-        setMessages(prev => [...prev, { role: 'bot', content: "Okay! You can still use the site or type 'retake' anytime." }]);
+        setMessages(prev => [...prev, { role: 'bot', content: "Okay! Feel free to ask me anything else." }]);
         setQuizCompleted(true);
       } else {
         setQuizStarted(true);
@@ -64,48 +44,47 @@ export default function PetrichorChat({ isDarkMode, username }) {
     }
 
     if (quizStarted) {
-      const updatedAnswers = [...quizAnswers, userInput.toLowerCase().includes('yes') ? 1 : -1];
+      const updatedAnswers = [...quizAnswers, userInput];
       setQuizAnswers(updatedAnswers);
-
       const nextIndex = questionIndex + 1;
+
       if (nextIndex < quizQuestions.length) {
         setQuestionIndex(nextIndex);
         setMessages(prev => [...prev, { role: 'bot', content: quizQuestions[nextIndex] }]);
       } else {
         try {
-          const result = await axios.post('/api/quiz/submit', {
+          const result = await axios.post('https://ichordotnews.onrender.com/api/quiz/submit', {
             answers: updatedAnswers,
-            username: username || 'guest'
+            username
           });
-          setMessages(prev => [...prev, { role: 'bot', content: `Thanks! Your political leaning is: ${result.data.bias}` }]);
+          setMessages(prev => [
+            ...prev,
+            { role: 'bot', content: `Thanks! Your political leaning is: ${result.data.bias}` },
+            { role: 'bot', content: 'Generating your personalized For You page, make sure to add 3 filters...' }
+          ]);
+          setQuizCompleted(true);
+          onQuizComplete(); // Callback to trigger personalized news fetch
         } catch (err) {
+          console.error(err);
           setMessages(prev => [...prev, { role: 'bot', content: 'Error evaluating bias. Try again later.' }]);
         }
+
         setQuizStarted(false);
-        setQuizCompleted(true);
         setQuestionIndex(0);
         setQuizAnswers([]);
       }
       return;
     }
 
-    if (quizCompleted && userInput.toLowerCase() === 'retake') {
-      setQuizStarted(true);
-      setQuizCompleted(false);
-      setMessages(prev => [...prev, { role: 'bot', content: quizQuestions[0] }]);
-      setQuestionIndex(0);
-      setQuizAnswers([]);
-      return;
-    }
-
     if (quizCompleted) {
       try {
-        const response = await axios.post('/api/petrichor/chat', {
+        const response = await axios.post('https://ichordotnews.onrender.com/api/petrichor/chat', {
           prompt: userInput,
-          username: username || 'guest'
+          username
         });
         setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
       } catch (err) {
+        console.error(err);
         setMessages(prev => [...prev, { role: 'bot', content: 'Oops! Something went wrong.' }]);
       }
     }
