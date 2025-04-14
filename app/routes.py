@@ -77,3 +77,11 @@ def quiz_submit():
     USER_PREFS[username]["quizResults"] = bias
     save_user_preferences()
     return jsonify({"bias": bias})
+
+
+@main.route('/api/quiz/status', methods=['POST'])
+def quiz_status():
+    data = request.get_json()
+    username = data.get("username", "guest")
+    has_quiz = username in USER_PREFS and "quizResults" in USER_PREFS[username]
+    return jsonify({ "taken": has_quiz })
