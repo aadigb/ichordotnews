@@ -1,6 +1,10 @@
 from flask import Blueprint, request, jsonify
-from app.news import get_curated_news as fetch_curated_news, get_search_news as fetch_search_news, expand_article, save_user_preferences, USER_PREFS
-from app.quiz import determine_bias
+from app.news import (
+    get_curated_news as fetch_curated_news,
+    get_search_news as fetch_search_news,
+    expand_article
+)
+from app.quiz import determine_bias, USER_PREFS, save_user_preferences
 from app.petrichor_agent import PetrichorAgent
 
 main = Blueprint('main', __name__)
@@ -33,10 +37,11 @@ def expand_news_article():
 
 @main.route('/api/petrichor/chat', methods=['POST'])
 def petrichor_chat():
-    data = request.json
+    data = request.get_json()
     prompt = data.get("prompt", "")
     username = data.get("username", "guest")
 
+    # Save user style preference if applicable
     if username != "guest" and ("write like" in prompt.lower() or "tone" in prompt.lower()):
         USER_PREFS[username] = USER_PREFS.get(username, {})
         USER_PREFS[username]["chatStyle"] = prompt
@@ -52,32 +57,37 @@ def petrichor_chat():
 
 @main.route('/api/quiz/submit', methods=['POST'])
 def quiz_submit():
-    data = request.json
-    answers = data.get("answers", [])
-    username = data.get("username", "guest")
+    try:
+        data = request.json
+        answers = data.get("answers", [])
+        username = data.get("username", "guest")
 
-    if not answers or len(answers) != 5:
-        return jsonify({"error": "Incomplete answers"}), 400
+        if not answers or len(answers) != 5:
+            return jsonify({"error": "Incomplete answers"}), 400
 
-    mapped = []
-    for ans in answers:
-        if isinstance(ans, str):
-            ans_lower = ans.lower().strip()
-            if ans_lower == "yes":
-                mapped.append(1)
-            elif ans_lower == "no":
-                mapped.append(-1)
+        # Convert yes/no or int to [-1, 0, 1]
+        mapped = []
+        for ans in answers:
+            if isinstance(ans, str):
+                ans_lower = ans.lower().strip()
+                if ans_lower == "yes":
+                    mapped.append(1)
+                elif ans_lower == "no":
+                    mapped.append(-1)
+                else:
+                    return jsonify({"error": "Invalid quiz answer"}), 400
             else:
-                return jsonify({"error": "Invalid quiz answer"}), 400
-        else:
-            mapped.append(int(ans))
+                mapped.append(int(ans))
 
-    bias = determine_bias(mapped)
-    USER_PREFS[username] = USER_PREFS.get(username, {})
-    USER_PREFS[username]["quizResults"] = bias
-    save_user_preferences()
-    return jsonify({"bias": bias})
+        bias = determine_bias(mapped)
+        USER_PREFS[username] = USER_PREFS.get(username, {})
+        USER_PREFS[username]["quizResults"] = bias
+        save_user_preferences()
+        return jsonify({"bias": bias})
 
+    except Exception as e:
+        print(f"[ERROR] Quiz processing failed: {e}")
+        return jsonify({"error": "Could not evaluate bias"}), 500
 
 @main.route('/api/quiz/status', methods=['POST'])
 def quiz_status():
