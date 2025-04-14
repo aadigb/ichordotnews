@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) {
-  const [messages, setMessages] = useState([
-    { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you?' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
@@ -20,6 +18,23 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
     "Do you support stricter immigration policies?",
     "Should education be free at all levels?"
   ];
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await axios.post('https://ichordotnews.onrender.com/api/quiz/status', { username });
+        if (res.data.taken) {
+          setMessages([{ role: 'bot', content: 'Add 3 filters to generate a page for you, or type "retake" to retake the quiz.' }]);
+          setQuizCompleted(true);
+        } else {
+          setMessages([{ role: 'bot', content: 'Do you want to take a preference test to curate a page just for you?' }]);
+        }
+      } catch (err) {
+        setMessages([{ role: 'bot', content: 'Welcome! You can start chatting or take a quick quiz.' }]);
+      }
+    };
+    checkStatus();
+  }, [username]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,6 +58,13 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
       return;
     }
 
+    if (quizCompleted && userInput.toLowerCase() === 'retake') {
+      setQuizStarted(true);
+      setQuizCompleted(false);
+      setMessages(prev => [...prev, { role: 'bot', content: quizQuestions[0] }]);
+      return;
+    }
+
     if (quizStarted) {
       const updatedAnswers = [...quizAnswers, userInput];
       setQuizAnswers(updatedAnswers);
@@ -63,7 +85,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
             { role: 'bot', content: 'Generating your personalized For You page, make sure to add 3 filters...' }
           ]);
           setQuizCompleted(true);
-          onQuizComplete(); // Callback to trigger personalized news fetch
+          onQuizComplete();
         } catch (err) {
           console.error(err);
           setMessages(prev => [...prev, { role: 'bot', content: 'Error evaluating bias. Try again later.' }]);
