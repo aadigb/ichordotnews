@@ -125,3 +125,39 @@ def get_search_news(topic, page=1, username=None):
         })
 
     return results
+
+
+def get_topic_news(topic, page=1, username=None):
+    params = {
+        "q": topic,
+        "pageSize": 5,
+        "page": int(page),
+        "sortBy": "relevancy",
+        "apiKey": NEWS_API_KEY,
+        "language": "en"
+    }
+
+    try:
+        res = requests.get(BASE_URL, params=params)
+        res.raise_for_status()
+        data = res.json()
+        articles = data.get("articles", [])
+        if not articles:
+            print(f"[INFO] No topic results for '{topic}'")
+            print(f"[DEBUG] Full API response: {data}")
+    except Exception as e:
+        print(f"[ERROR] Topic news API error: {e}")
+        return []
+
+    results = []
+    for article in articles:
+        title = article.get("title", "")
+        desc = article.get("description", "")
+        summary = summarize_article(title, desc, username=username)
+        results.append({
+            "title": title,
+            "summary": summary
+        })
+
+    return results
+
