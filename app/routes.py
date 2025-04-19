@@ -1,5 +1,12 @@
 from flask import Blueprint, request, jsonify
-from app.news import get_curated_news as fetch_curated_news, get_search_news as fetch_search_news, expand_article, save_user_preferences, USER_PREFS
+from app.news import (
+    get_curated_news,
+    get_search_news,
+    get_topic_news,
+    expand_article,
+    save_user_preferences,
+    USER_PREFS
+)
 from app.quiz import determine_bias
 from app.petrichor_agent import PetrichorAgent
 
@@ -9,10 +16,9 @@ petrichor = PetrichorAgent()
 @main.route('/api/news/curated', methods=['POST'])
 def curated_news_route():
     data = request.get_json()
-    filters = data.get('filters', [])
     page = data.get('page', 1)
     username = data.get('username', 'guest')
-    news = fetch_curated_news(filters, page, username)
+    news = get_curated_news(page=page, username=username)
     return jsonify(news)
 
 @main.route('/api/news/search', methods=['POST'])
@@ -21,7 +27,16 @@ def search_news_route():
     topic = data.get('topic', '')
     page = data.get('page', 1)
     username = data.get('username', 'guest')
-    news = fetch_search_news(topic, page, username)
+    news = get_search_news(topic, page, username)
+    return jsonify(news)
+
+@main.route('/api/news/topic', methods=['POST'])
+def topic_news_route():
+    data = request.get_json()
+    topic = data.get('topic', '')
+    page = data.get('page', 1)
+    username = data.get('username', 'guest')
+    news = get_topic_news(topic, page, username)
     return jsonify(news)
 
 @main.route('/api/news/expand', methods=['POST'])
@@ -56,7 +71,7 @@ def quiz_submit():
     answers = data.get("answers", [])
     username = data.get("username", "guest")
 
-    if not answers or len(answers) != 5:
+    if not answers or len(answers) != 10:
         return jsonify({"error": "Incomplete answers"}), 400
 
     mapped = []
