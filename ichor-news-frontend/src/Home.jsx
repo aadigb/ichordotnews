@@ -136,41 +136,47 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
-      <header className="flex justify-between items-center px-6 py-3 bg-white dark:bg-gray-900 shadow">
-        <div className="flex gap-4 items-center">
-          <h1 className="text-xl font-bold">🌱 Ichor News</h1>
-          {presetCategories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => {
-                setTopic('');
-                fetchSearchNews(cat);
-              }}
-              className="text-sm hover:underline"
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+     <header className="relative flex items-center px-6 py-3 bg-white dark:bg-gray-900 shadow">
+  {/* Left: Logo and categories */}
+  <div className="flex gap-4 items-center">
+    <h1 className="text-xl font-bold">🌱 Ichor News</h1>
+    {presetCategories.map(cat => (
+      <button
+        key={cat}
+        onClick={() => {
+          setTopic('');
+          fetchSearchNews(cat);
+        }}
+        className="text-sm hover:underline"
+      >
+        {cat}
+      </button>
+    ))}
+  </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm hidden md:inline">{date}</span>
-          <input
-            className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
-            placeholder="Search topic..."
-            value={topic}
-            onChange={e => setTopic(e.target.value)}
-          />
-          <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
-          <span className="text-sm">👤 {username}</span>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
-          >
-            {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-          </button>
-        </div>
-      </header>
+  {/* Center: Date and Time */}
+  <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">
+    {date}
+  </div>
+
+  {/* Right: Search and controls */}
+  <div className="ml-auto flex items-center gap-3">
+    <input
+      className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
+      placeholder="Search topic..."
+      value={topic}
+      onChange={e => setTopic(e.target.value)}
+    />
+    <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
+    <span className="text-sm">👤 {username}</span>
+    <button
+      onClick={() => setIsDarkMode(!isDarkMode)}
+      className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
+    >
+      {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+    </button>
+  </div>
+</header>
 
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* For You Section */}
