@@ -30,12 +30,12 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
         const res = await axios.post('https://ichordotnews.onrender.com/api/quiz/status', { username });
         if (res.data.taken) {
           setMessages([
-            { role: 'bot', content: 'Add 3 filters to generate a page for you, or type "retake" to retake the quiz.' }
+            { role: 'bot', content: 'Type "retake" to retake the quiz.' }
           ]);
           setQuizCompleted(true);
         } else {
           setMessages([
-            { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you?' }
+            { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you, or type "no" if you want unbiased?' }
           ]);
         }
       } catch {
