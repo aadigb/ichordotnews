@@ -7,61 +7,48 @@ const API_BASE = 'https://ichordotnews.onrender.com';
 export default function Home() {
   const [forYouNews, setForYouNews] = useState([]);
   const [searchNews, setSearchNews] = useState([]);
-  const [modalArticle, setModalArticle] = useState(null);
-  const [modalContent, setModalContent] = useState('');
   const [topic, setTopic] = useState('');
   const [username, setUsername] = useState('');
   const [showLogin, setShowLogin] = useState(true);
   const [loginForm, setLoginForm] = useState({ username: '', password: '', isRegistering: false });
   const [authError, setAuthError] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('theme');
-    return stored ? stored === 'dark' : true;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [modalArticle, setModalArticle] = useState(null);
+  const [modalContent, setModalContent] = useState('');
 
-  const forYouRef = useRef();
   const searchRef = useRef();
+  const forYouRef = useRef();
+
+  const date = new Date().toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    fetchForYouNews();
   }, [isDarkMode]);
 
-  const handleAuth = async () => {
+  const fetchForYouNews = async () => {
     try {
-      const endpoint = loginForm.isRegistering ? '/api/register' : '/api/login';
-      const res = await axios.post(`${API_BASE}${endpoint}`, {
-        username: loginForm.username,
-        password: loginForm.password
-      });
-      setUsername(res.data.username);
-      setShowLogin(false);
-      fetchTrendingNews(res.data.username);
-    } catch (err) {
-      setAuthError(err.response?.data?.error || 'Invalid credentials');
-    }
-  };
-
-  const fetchTrendingNews = async (user) => {
-    try {
-      const res = await axios.post(`${API_BASE}/api/news/curated`, {
-        filters: ['trending', 'breaking', 'headlines'],
-        page: 1,
-        username: user
-      });
+      const res = await axios.post(`${API_BASE}/api/news/curated`, { filters: ['trending'], page: 1, username });
       setForYouNews(res.data);
     } catch (err) {
-      console.error('Trending fetch error:', err);
+      console.error("For You fetch error:", err);
     }
   };
 
-  const fetchSearchNews = async () => {
+  const fetchSearchNews = async (searchTerm = topic) => {
     try {
-      const res = await axios.post(`${API_BASE}/api/news/search`, {
-        topic,
-        page: 1,
-        username
-      });
+      const res = await axios.post(`${API_BASE}/api/news/search`, { topic: searchTerm, page: 1, username });
       setSearchNews(res.data);
     } catch (err) {
       console.error('Search fetch error:', err);
@@ -73,39 +60,39 @@ export default function Home() {
       const full = await axios.post(`${API_BASE}/api/news/expand`, { content: article.summary });
       setModalArticle(article);
       setModalContent(full.data.full);
-    } catch (err) {
+    } catch {
       alert("Error loading article.");
     }
   };
 
-  const extractHook = (summary) => {
-    const hookLine = summary.split('\n')[1] || '';
-    return hookLine.replace(/HOOK:\s*/gi, '').replace(/["“”]/g, '').trim();
-  };
+  const clean = (txt) => txt.replace(/^(TITLE|HOOK|SUMMARY):/gi, '').trim();
+  const extractHook = (summary) => (summary.split('\n')[1] || '').replace(/HOOK:/gi, '').trim();
+  const extractBody = (summary) => summary.split('\n').slice(2).join(' ').replace(/SUMMARY:/gi, '').trim();
 
-  const extractBody = (summary) => {
-    return summary
-      .split('\n')
-      .slice(2)
-      .join(' ')
-      .replace(/HOOK:\s*/gi, '')
-      .replace(/SUMMARY:\s*/gi, '')
-      .replace(/["“”]/g, '')
-      .trim();
+  const handleAuth = async () => {
+    try {
+      const endpoint = loginForm.isRegistering ? '/api/register' : '/api/login';
+      const res = await axios.post(`${API_BASE}${endpoint}`, loginForm);
+      setUsername(res.data.username);
+      setShowLogin(false);
+      setAuthError('');
+    } catch (err) {
+      setAuthError(err.response?.data?.error || 'Invalid credentials or registration failed.');
+    }
   };
 
   const renderArticle = (article, idx) => (
     <div key={idx} className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8">
       <div className="max-w-xl w-full space-y-6">
-        <h2 className="text-3xl font-extrabold">{article.title.replace(/^TITLE:\s*/, '')}</h2>
+        <h2 className="text-3xl font-extrabold">{clean(article.title)}</h2>
         <p className="italic text-blue-500">{extractHook(article.summary)}</p>
         <p className="text-md leading-relaxed">{extractBody(article.summary)}</p>
-        <button onClick={() => handleExpand(article)} className="text-blue-600 hover:underline text-sm mt-2">
-          Expand
-        </button>
+        <button onClick={() => handleExpand(article)} className="text-blue-600 hover:underline text-sm mt-2">Expand</button>
       </div>
     </div>
   );
+
+  const presetCategories = ['US', 'World', 'Politics', 'Health', 'Entertainment', 'Sports', 'Science'];
 
   if (showLogin) {
     return (
@@ -120,39 +107,26 @@ export default function Home() {
               {isDarkMode ? '☀️ Light' : '🌙 Dark'}
             </button>
           </div>
-          <input
-            className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black placeholder-gray-500"
+          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             placeholder="Username"
             value={loginForm.username}
-            onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
+            onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
           />
-          <input
+          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             type="password"
-            className="w-full mb-3 px-3 py-2 bg-white border border-gray-300 rounded text-black placeholder-gray-500"
             placeholder="Password"
             value={loginForm.password}
-            onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
+            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
           />
           {authError && <div className="text-red-400 text-sm mb-2">{authError}</div>}
-          <button
-            onClick={handleAuth}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
-          >
+          <button onClick={handleAuth} className="w-full bg-blue-600 text-white py-2 rounded mb-2">
             {loginForm.isRegistering ? 'Register' : 'Login'}
           </button>
-          <p className="text-sm text-center mt-3">
+          <p className="text-sm text-center">
             {loginForm.isRegistering ? (
-              <>Already have an account?{' '}
-                <button className="text-blue-400 hover:underline" onClick={() => setLoginForm({ ...loginForm, isRegistering: false })}>
-                  Login
-                </button>
-              </>
+              <>Already have an account? <button className="text-blue-400" onClick={() => setLoginForm({ ...loginForm, isRegistering: false })}>Login</button></>
             ) : (
-              <>No account?{' '}
-                <button className="text-blue-400 hover:underline" onClick={() => setLoginForm({ ...loginForm, isRegistering: true })}>
-                  Register
-                </button>
-              </>
+              <>No account? <button className="text-blue-400" onClick={() => setLoginForm({ ...loginForm, isRegistering: true })}>Register</button></>
             )}
           </p>
         </div>
@@ -162,33 +136,32 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
-      {/* HEADER */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 shadow">
-        <div className="flex items-center gap-6">
-          <h1 className="text-2xl font-bold">🌱 Ichor News</h1>
-          {['US', 'World', 'Politics', 'Health', 'Entertainment', 'Sports', 'Science'].map(t => (
+      <header className="flex justify-between items-center px-6 py-3 bg-white dark:bg-gray-900 shadow">
+        <div className="flex gap-4 items-center">
+          <h1 className="text-xl font-bold">🌱 Ichor News</h1>
+          {presetCategories.map(cat => (
             <button
-              key={t}
-              onClick={() => setTopic(t)}
-              className="text-sm text-blue-700 hover:underline dark:text-blue-400"
+              key={cat}
+              onClick={() => {
+                setTopic('');
+                fetchSearchNews(cat);
+              }}
+              className="text-sm hover:underline"
             >
-              {t}
+              {cat}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-4">
+          <span className="text-sm hidden md:inline">{date}</span>
           <input
-            className="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
+            className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
             placeholder="Search topic..."
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+            onChange={e => setTopic(e.target.value)}
           />
-          <button
-            onClick={fetchSearchNews}
-            className="bg-blue-600 text-white px-3 rounded"
-          >
-            Go
-          </button>
+          <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
           <span className="text-sm">👤 {username}</span>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -199,54 +172,33 @@ export default function Home() {
         </div>
       </header>
 
-      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="h-screen overflow-y-scroll snap-y snap-mandatory border-r px-6" ref={forYouRef}>
-          <div className="py-4">
-            <h2 className="text-xl font-semibold mb-4">🧠 For You</h2>
-          </div>
+        {/* For You Section */}
+        <div ref={forYouRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
+          <h2 className="text-xl font-semibold py-4">🧠 For You</h2>
           {forYouNews.map(renderArticle)}
         </div>
 
-        <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6" ref={searchRef}>
-          <div className="py-4">
-            <h2 className="text-xl font-semibold mb-4">🔍 Topic</h2>
-          </div>
-          {searchNews.length === 0 ? (
-            <p className="text-gray-400 text-sm">Search for a topic to see articles here.</p>
-          ) : (
-            searchNews.map(renderArticle)
-          )}
+        {/* Search Results */}
+        <div ref={searchRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
+          <h2 className="text-xl font-semibold py-4">🔍 Topic</h2>
+          {searchNews.map(renderArticle)}
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* Expand Modal */}
       {modalArticle && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
-          onClick={() => setModalArticle(null)}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" onClick={() => setModalArticle(null)}>
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold mb-2">{modalArticle.title.replace(/^TITLE:\s*/, '')}</h2>
-            <p className="whitespace-pre-wrap">{modalContent}</p>
-            <button
-              onClick={() => setModalArticle(null)}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
+            <h2 className="text-2xl font-bold mb-2">{clean(modalArticle.title)}</h2>
+            <p className="whitespace-pre-wrap">{clean(modalContent)}</p>
+            <button className="mt-4 bg-red-600 text-white px-4 py-2 rounded" onClick={() => setModalArticle(null)}>Close</button>
           </div>
         </div>
       )}
 
       <div className="fixed bottom-6 right-6 w-full max-w-sm z-50">
-        <PetrichorChat
-          isDarkMode={isDarkMode}
-          username={username}
-          onQuizComplete={() => {
-            alert('Your preferences have been saved. They will be applied next time you log in.');
-          }}
-        />
+        <PetrichorChat isDarkMode={isDarkMode} username={username} onQuizComplete={fetchForYouNews} />
       </div>
     </main>
   );
