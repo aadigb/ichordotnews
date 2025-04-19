@@ -181,13 +181,13 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* For You Section */}
         <div ref={forYouRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
-          <h2 className="text-xl font-semibold py-4">🧠 For You</h2>
+          <h2 className="text-xl font-semibold py-4">For You</h2>
           {forYouNews.map(renderArticle)}
         </div>
 
         {/* Search Results */}
         <div ref={searchRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
-          <h2 className="text-xl font-semibold py-4">🔍 Topic</h2>
+          <h2 className="text-xl font-semibold py-4">🔍</h2>
           {searchNews.map(renderArticle)}
         </div>
       </div>
