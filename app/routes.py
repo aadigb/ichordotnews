@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.news import (
-    get_curated_news,
-    get_search_news,
-    get_topic_news,
+    get_curated_news as fetch_curated_news,
+    get_search_news as fetch_search_news,
     expand_article,
     save_user_preferences,
     USER_PREFS
@@ -16,9 +15,10 @@ petrichor = PetrichorAgent()
 @main.route('/api/news/curated', methods=['POST'])
 def curated_news_route():
     data = request.get_json()
+    filters = data.get('filters', ['trending'])
     page = data.get('page', 1)
     username = data.get('username', 'guest')
-    news = get_curated_news(page=page, username=username)
+    news = fetch_curated_news(filters, page, username)
     return jsonify(news)
 
 @main.route('/api/news/search', methods=['POST'])
@@ -27,16 +27,7 @@ def search_news_route():
     topic = data.get('topic', '')
     page = data.get('page', 1)
     username = data.get('username', 'guest')
-    news = get_search_news(topic, page, username)
-    return jsonify(news)
-
-@main.route('/api/news/topic', methods=['POST'])
-def topic_news_route():
-    data = request.get_json()
-    topic = data.get('topic', '')
-    page = data.get('page', 1)
-    username = data.get('username', 'guest')
-    news = get_topic_news(topic, page, username)
+    news = fetch_search_news(topic, page, username)
     return jsonify(news)
 
 @main.route('/api/news/expand', methods=['POST'])
