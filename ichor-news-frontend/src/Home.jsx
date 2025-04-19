@@ -100,10 +100,7 @@ export default function Home() {
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">{loginForm.isRegistering ? 'Register' : '🌱 Login'}</h2>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="text-sm border px-2 py-1 rounded"
-            >
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded">
               {isDarkMode ? '☀️ Light' : '🌙 Dark'}
             </button>
           </div>
@@ -136,66 +133,43 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
-     <header className="relative flex items-center px-6 py-3 bg-white dark:bg-gray-900 shadow">
-  {/* Left: Logo and categories */}
-  <div className="flex gap-4 items-center">
-    <h1 className="text-xl font-bold">🌱 Ichor News</h1>
-    {presetCategories.map(cat => (
-      <button
-        key={cat}
-        onClick={() => {
-          setTopic('');
-          fetchSearchNews(cat);
-        }}
-        className="text-sm hover:underline"
-      >
-        {cat}
-      </button>
-    ))}
-  </div>
-
-  {/* Center: Date and Time */}
-  <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">
-    {date}
-  </div>
-
-  {/* Right: Search and controls */}
-  <div className="ml-auto flex items-center gap-3">
-    <input
-      className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
-      placeholder="Search topic..."
-      value={topic}
-      onChange={e => setTopic(e.target.value)}
-    />
-    <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
-    <span className="text-sm">👤 {username}</span>
-    <button
-      onClick={() => setIsDarkMode(!isDarkMode)}
-      className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
-    >
-      {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-    </button>
-  </div>
-</header>
+      <header className="relative flex items-center px-6 py-3 bg-white dark:bg-gray-900 shadow">
+        <div className="flex gap-4 items-center">
+          <h1 className="text-xl font-bold">🌱 Ichor News</h1>
+          {presetCategories.map(cat => (
+            <button key={cat} onClick={() => { setTopic(''); fetchSearchNews(cat); }} className="text-sm hover:underline">{cat}</button>
+          ))}
+        </div>
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">{date}</div>
+        <div className="ml-auto flex items-center gap-3">
+          <input className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
+            placeholder="Search topic..."
+            value={topic}
+            onChange={e => setTopic(e.target.value)}
+          />
+          <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
+          <span className="text-sm">👤 {username}</span>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded dark:bg-gray-700">
+            {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+          </button>
+        </div>
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* For You Section */}
         <div ref={forYouRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
           <h2 className="text-xl font-semibold py-4">For You</h2>
           {forYouNews.map(renderArticle)}
         </div>
-
-        {/* Search Results */}
         <div ref={searchRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
           <h2 className="text-xl font-semibold py-4">🔍</h2>
           {searchNews.map(renderArticle)}
         </div>
       </div>
 
-      {/* Expand Modal */}
       {modalArticle && (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" onClick={() => setModalArticle(null)}>
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {modalArticle.image && <img src={modalArticle.image} alt="News Visual" className="rounded mb-4" />}
             <h2 className="text-2xl font-bold mb-2">{clean(modalArticle.title)}</h2>
             <p className="whitespace-pre-wrap">{clean(modalContent)}</p>
             <button className="mt-4 bg-red-600 text-white px-4 py-2 rounded" onClick={() => setModalArticle(null)}>Close</button>
