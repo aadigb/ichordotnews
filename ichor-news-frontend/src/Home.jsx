@@ -204,7 +204,7 @@ export default function Home() {
 
         {/* Search Results */}
         <div ref={searchRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
-          <h2 className="text-xl font-semibold py-4">🔍</h2>
+          <h2 className="text-xl font-semibold py-4"></h2>
           {searchNews.map(renderArticle)}
         </div>
       </div>
