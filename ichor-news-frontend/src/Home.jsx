@@ -181,7 +181,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
-          <h2 className="text-xl font-semibold py-4">For You</h2>
+          <h2 className="text-xl font-semibold py-4">For You Page Generating...</h2>
           {forYouNews.map(renderArticle)}
         </div>
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
