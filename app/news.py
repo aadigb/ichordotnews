@@ -8,7 +8,6 @@ NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
-# Load user preferences
 PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
 try:
     with open(PREF_PATH, "r") as f:
@@ -16,6 +15,13 @@ try:
 except Exception as e:
     print(f"[WARN] Could not load user preferences: {e}")
     USER_PREFS = {}
+
+def save_user_preferences():
+    try:
+        with open(PREF_PATH, "w") as f:
+            json.dump(USER_PREFS, f, indent=2)
+    except Exception as e:
+        print(f"[ERROR] Failed to save preferences: {e}")
 
 def get_user_style(username):
     prefs = USER_PREFS.get(username, {})
@@ -39,7 +45,12 @@ ARTICLE:
 {description}
 """
     try:
-        return petrichor.respond(prompt)
+        raw = petrichor.respond(prompt)
+        # Sanitize to remove HOOK: or SUMMARY: or TITLE: from output
+        return '\n'.join([
+            line.replace('HOOK:', '').replace('hook:', '').strip()
+            for line in raw.splitlines()
+        ])
     except Exception as e:
         print(f"[ERROR] GPT summarization failed: {e}")
         return f"{title}\n\n{description}"
@@ -54,15 +65,14 @@ def expand_article(summary):
 def get_curated_news(filters, page=1, username=None):
     if not filters:
         filters = ["trending"]
-
     query = " OR ".join(filters)
     params = {
         "q": query,
-        "pageSize": 20,
+        "pageSize": 10,
         "page": int(page),
-        "sortBy": "publishedAt",
+        "sortBy": "relevancy",
         "apiKey": NEWS_API_KEY,
-        "language": "en",
+        "language": "en"
     }
 
     try:
@@ -77,7 +87,7 @@ def get_curated_news(filters, page=1, username=None):
     for article in articles:
         title = article.get("title") or article.get("source", {}).get("name", "Untitled")
         desc = article.get("description") or article.get("content") or ""
-        image = article.get("urlToImage")
+        image = article.get("urlToImage", None)
         if not title and not desc:
             continue
         summary = summarize_article(title, desc, username=username)
@@ -92,7 +102,7 @@ def get_curated_news(filters, page=1, username=None):
 def get_search_news(topic, page=1, username=None):
     params = {
         "qInTitle": topic,
-        "pageSize": 20,
+        "pageSize": 10,
         "page": int(page),
         "sortBy": "relevancy",
         "apiKey": NEWS_API_KEY,
@@ -104,9 +114,6 @@ def get_search_news(topic, page=1, username=None):
         res.raise_for_status()
         data = res.json()
         articles = data.get("articles", [])
-        if not articles:
-            print(f"[INFO] No search results for '{topic}'")
-            print(f"[DEBUG] Full API response: {data}")
     except Exception as e:
         print(f"[ERROR] News API error (search): {e}")
         return []
@@ -115,7 +122,7 @@ def get_search_news(topic, page=1, username=None):
     for article in articles:
         title = article.get("title", "")
         desc = article.get("description", "")
-        image = article.get("urlToImage")
+        image = article.get("urlToImage", None)
         summary = summarize_article(title, desc, username=username)
         results.append({
             "title": title,
