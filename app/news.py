@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 from app.petrichor_agent import PetrichorAgent
 
-NEWS_API_KEY = "8f0543ab5ff044b1b87758ef620d413b"
+NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
