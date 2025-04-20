@@ -16,6 +16,9 @@ export default function Home() {
   const [modalArticle, setModalArticle] = useState(null);
   const [modalContent, setModalContent] = useState('');
 
+  const searchRef = useRef();
+  const forYouRef = useRef();
+
   const date = new Date().toLocaleString('en-US', {
     timeZone: 'America/Los_Angeles',
     weekday: 'long',
@@ -28,6 +31,12 @@ export default function Home() {
     timeZoneName: 'short'
   });
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    fetchForYouNews();
+  }, [isDarkMode]);
+
   const fetchForYouNews = async () => {
     try {
       const res = await axios.post(`${API_BASE}/api/news/curated`, {
@@ -35,9 +44,9 @@ export default function Home() {
         page: 1,
         username
       });
-      setForYouNews(res.data.slice(0, 20));
+      setForYouNews(res.data);
     } catch (err) {
-      console.error('For You fetch error:', err);
+      console.error("For You fetch error:", err);
     }
   };
 
@@ -66,14 +75,13 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    if (!showLogin) fetchForYouNews();
-  }, [showLogin]);
+  const clean = (txt) => txt.replace(/^(TITLE|HOOK|SUMMARY):/gi, '').trim();
+  const extractHook = (summary) => {
+    const line = summary.split('\n')[1] || '';
+    return line.replace(/HOOK:/gi, '').trim();
+  };
+  const extractBody = (summary) =>
+    summary.split('\n').slice(2).join(' ').replace(/SUMMARY:/gi, '').trim();
 
   const handleAuth = async () => {
     try {
@@ -87,19 +95,15 @@ export default function Home() {
     }
   };
 
-  const clean = (txt) => txt.replace(/^(TITLE|HOOK|SUMMARY):/gi, '').trim();
-  const extractHook = (summary) => {
-    const line = summary.split('\n')[1] || '';
-    return line.replace(/HOOK:/gi, '').trim();
-  };
-  const extractBody = (summary) =>
-    summary.split('\n').slice(2).join(' ').replace(/SUMMARY:/gi, '').trim();
-
   const renderArticle = (article, idx) => (
     <div key={idx} className="snap-start h-screen flex flex-col justify-center items-center px-6 py-8">
       <div className="max-w-xl w-full space-y-6">
-        {article.urlToImage && (
-          <img src={article.urlToImage} alt="preview" className="w-full h-auto rounded shadow" />
+        {article.image && (
+          <img
+            src={article.image}
+            alt="News"
+            className="w-full h-60 object-cover rounded shadow mb-2"
+          />
         )}
         <h2 className="text-3xl font-extrabold">{clean(article.title)}</h2>
         <p className="italic text-blue-500">{extractHook(article.summary)}</p>
@@ -123,14 +127,12 @@ export default function Home() {
               {isDarkMode ? '☀️ Light' : '🌙 Dark'}
             </button>
           </div>
-          <input
-            className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
+          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             placeholder="Username"
             value={loginForm.username}
             onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
           />
-          <input
-            className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
+          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             type="password"
             placeholder="Password"
             value={loginForm.password}
@@ -158,12 +160,23 @@ export default function Home() {
         <div className="flex gap-4 items-center">
           <h1 className="text-xl font-bold">🌱 Ichor News</h1>
           {presetCategories.map(cat => (
-            <button key={cat} onClick={() => fetchSearchNews(cat)} className="text-sm hover:underline">
+            <button
+              key={cat}
+              onClick={() => {
+                setTopic('');
+                fetchSearchNews(cat);
+              }}
+              className="text-sm hover:underline"
+            >
               {cat}
             </button>
           ))}
         </div>
-        <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">{date}</div>
+
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">
+          {date}
+        </div>
+
         <div className="ml-auto flex items-center gap-3">
           <input
             className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
@@ -173,32 +186,39 @@ export default function Home() {
           />
           <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
           <span className="text-sm">👤 {username}</span>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded dark:bg-gray-700">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
+          >
             {isDarkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
-          <h2 className="text-xl font-semibold py-4">For You Page Generating...</h2>
+        {/* For You Section */}
+        <div ref={forYouRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6">
+          <h2 className="text-xl font-semibold py-4">For You</h2>
           {forYouNews.map(renderArticle)}
         </div>
-        <div className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
-          <h2 className="text-xl font-semibold py-4"></h2>
+
+        {/* Search Results */}
+        <div ref={searchRef} className="h-screen overflow-y-scroll snap-y snap-mandatory px-6 border-l">
+          <h2 className="text-xl font-semibold py-4">🔍</h2>
           {searchNews.map(renderArticle)}
         </div>
       </div>
 
+      {/* Expand Modal */}
       {modalArticle && (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" onClick={() => setModalArticle(null)}>
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            {modalArticle.urlToImage && (
-              <img src={modalArticle.urlToImage} alt="expanded" className="mb-4 w-full rounded" />
+            {modalArticle.image && (
+              <img src={modalArticle.image} alt="Expanded" className="w-full h-60 object-cover rounded mb-4" />
             )}
             <h2 className="text-2xl font-bold mb-2">{clean(modalArticle.title)}</h2>
             <p className="whitespace-pre-wrap">{clean(modalContent)}</p>
-            <button onClick={() => setModalArticle(null)} className="mt-4 bg-red-600 text-white px-4 py-2 rounded">Close</button>
+            <button className="mt-4 bg-red-600 text-white px-4 py-2 rounded" onClick={() => setModalArticle(null)}>Close</button>
           </div>
         </div>
       )}
