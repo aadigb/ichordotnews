@@ -35,11 +35,11 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           setQuizCompleted(true);
         } else {
           setMessages([
-            { role: 'bot', content: 'Do you want to take a preference test to curate a page just for you, or type "no" if you want unbiased?' }
+            { role: 'bot', content: 'Do you want to take a preference test to customize your article's style, or type "no" if you want unbiased?' }
           ]);
         }
       } catch {
-        setMessages([{ role: 'bot', content: 'Do you want to take a preference test to curate a page just for you, or type "no" if you want unbiased?' }]);
+        setMessages([{ role: 'bot', content: 'Do you want to take a preference test to customize your article's style, or type "no" if you want unbiased?' }]);
       }
     };
     checkStatus();
