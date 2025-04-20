@@ -3,8 +3,7 @@ from app.news import (
     get_curated_news as fetch_curated_news,
     get_search_news as fetch_search_news,
     expand_article,
-    save_user_preferences,
-    USER_PREFS
+    
 )
 from app.quiz import determine_bias
 from app.petrichor_agent import PetrichorAgent
