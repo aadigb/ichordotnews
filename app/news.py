@@ -4,11 +4,11 @@ import json
 from datetime import datetime, timedelta
 from app.petrichor_agent import PetrichorAgent
 
-NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
+NEWS_API_KEY = "8f0543ab5ff044b1b87758ef620d413b"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
-# Load preferences
+# Load user preferences
 PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
 try:
     with open(PREF_PATH, "r") as f:
@@ -16,14 +16,6 @@ try:
 except Exception as e:
     print(f"[WARN] Could not load user preferences: {e}")
     USER_PREFS = {}
-
-def save_user_preferences():
-    try:
-        with open(PREF_PATH, "w") as f:
-            json.dump(USER_PREFS, f, indent=2)
-        print("[INFO] Saved user preferences.")
-    except Exception as e:
-        print(f"[ERROR] Could not save preferences: {e}")
 
 def get_user_style(username):
     prefs = USER_PREFS.get(username, {})
@@ -61,7 +53,7 @@ def expand_article(summary):
 
 def get_curated_news(filters, page=1, username=None):
     if not filters:
-        filters = ['trending']
+        filters = ["trending"]
 
     query = " OR ".join(filters)
     params = {
@@ -70,7 +62,7 @@ def get_curated_news(filters, page=1, username=None):
         "page": int(page),
         "sortBy": "publishedAt",
         "apiKey": NEWS_API_KEY,
-        "language": "en"
+        "language": "en",
     }
 
     try:
@@ -100,7 +92,7 @@ def get_curated_news(filters, page=1, username=None):
 def get_search_news(topic, page=1, username=None):
     params = {
         "qInTitle": topic,
-        "pageSize": 5,
+        "pageSize": 20,
         "page": int(page),
         "sortBy": "relevancy",
         "apiKey": NEWS_API_KEY,
@@ -112,6 +104,9 @@ def get_search_news(topic, page=1, username=None):
         res.raise_for_status()
         data = res.json()
         articles = data.get("articles", [])
+        if not articles:
+            print(f"[INFO] No search results for '{topic}'")
+            print(f"[DEBUG] Full API response: {data}")
     except Exception as e:
         print(f"[ERROR] News API error (search): {e}")
         return []
