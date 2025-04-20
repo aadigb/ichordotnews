@@ -34,13 +34,8 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    fetchForYouNews();
   }, [isDarkMode]);
-
-  useEffect(() => {
-    if (username) {
-      fetchForYouNews();
-    }
-  }, [username]);
 
   const fetchForYouNews = async () => {
     try {
@@ -79,9 +74,15 @@ export default function Home() {
   };
 
   const clean = (txt) => txt.replace(/^(TITLE|HOOK|SUMMARY):/gi, '').trim();
-  const extractHook = (summary) => (summary.split('\n')[1] || '').replace(/HOOK:/gi, '').trim();
-  const extractBody = (summary) =>
-    summary.split('\n').slice(2).join(' ').replace(/SUMMARY:/gi, '').trim();
+
+  const extractHook = (summary) => {
+    const hookLine = summary.split('\n')[1] || '';
+    return hookLine.replace(/HOOK:/gi, '').replace(/["“”]/g, '').trim();
+  };
+
+  const extractBody = (summary) => {
+    return summary.split('\n').slice(2).join(' ').replace(/SUMMARY:/gi, '').trim();
+  };
 
   const handleAuth = async () => {
     try {
@@ -101,9 +102,7 @@ export default function Home() {
         <h2 className="text-3xl font-extrabold">{clean(article.title)}</h2>
         <p className="italic text-blue-500">{extractHook(article.summary)}</p>
         <p className="text-md leading-relaxed">{extractBody(article.summary)}</p>
-        <button onClick={() => handleExpand(article)} className="text-blue-600 hover:underline text-sm mt-2">
-          Expand
-        </button>
+        <button onClick={() => handleExpand(article)} className="text-blue-600 hover:underline text-sm mt-2">Expand</button>
       </div>
     </div>
   );
@@ -116,19 +115,18 @@ export default function Home() {
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">{loginForm.isRegistering ? 'Register' : '🌱 Login'}</h2>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="text-sm border px-2 py-1 rounded"
-            >
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded">
               {isDarkMode ? '☀️ Light' : '🌙 Dark'}
             </button>
           </div>
-          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
+          <input
+            className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             placeholder="Username"
             value={loginForm.username}
             onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
           />
-          <input className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
+          <input
+            className="w-full mb-3 px-3 py-2 bg-white text-black border rounded"
             type="password"
             placeholder="Password"
             value={loginForm.password}
@@ -156,23 +154,14 @@ export default function Home() {
         <div className="flex gap-4 items-center">
           <h1 className="text-xl font-bold">🌱 Ichor News</h1>
           {presetCategories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => {
-                setTopic('');
-                fetchSearchNews(cat);
-              }}
-              className="text-sm hover:underline"
-            >
+            <button key={cat} onClick={() => { setTopic(''); fetchSearchNews(cat); }} className="text-sm hover:underline">
               {cat}
             </button>
           ))}
         </div>
-
         <div className="absolute left-1/2 transform -translate-x-1/2 text-sm hidden md:block">
           {date}
         </div>
-
         <div className="ml-auto flex items-center gap-3">
           <input
             className="border px-2 py-1 w-48 md:w-60 text-sm dark:bg-gray-700 dark:text-white rounded"
@@ -182,10 +171,7 @@ export default function Home() {
           />
           <button onClick={() => fetchSearchNews()} className="bg-blue-600 text-white px-3 py-1 rounded">Go</button>
           <span className="text-sm">👤 {username}</span>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="text-sm border px-2 py-1 rounded dark:bg-gray-700"
-          >
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-sm border px-2 py-1 rounded dark:bg-gray-700">
             {isDarkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
@@ -207,7 +193,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" onClick={() => setModalArticle(null)}>
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {modalArticle.image && (
-              <img src={modalArticle.image} alt="thumbnail" className="mb-4 rounded" />
+              <img src={modalArticle.image} alt="Thumbnail" className="mb-4 w-full rounded" />
             )}
             <h2 className="text-2xl font-bold mb-2">{clean(modalArticle.title)}</h2>
             <p className="whitespace-pre-wrap">{clean(modalContent)}</p>
