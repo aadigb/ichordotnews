@@ -39,7 +39,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           ]);
         }
       } catch {
-        setMessages([{ role: 'bot', content: 'Welcome! You can take a quiz or chat with me.' }]);
+        setMessages([{ role: 'bot', content: 'Do you want to take a preference test to curate a page just for you, or type "no" if you want unbiased?' }]);
       }
     };
     checkStatus();
