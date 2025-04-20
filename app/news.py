@@ -1,13 +1,14 @@
 import os
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.petrichor_agent import PetrichorAgent
 
-NEWS_API_KEY = "c27ff28eb67248e4977c6d550cb6e371"
+NEWS_API_KEY = "YOUR_NEWSAPI_KEY_HERE"
 BASE_URL = "https://newsapi.org/v2/everything"
 petrichor = PetrichorAgent()
 
+# Load preferences
 PREF_PATH = os.path.join(os.path.dirname(__file__), "../user_preferences.json")
 try:
     with open(PREF_PATH, "r") as f:
@@ -20,6 +21,7 @@ def save_user_preferences():
     try:
         with open(PREF_PATH, "w") as f:
             json.dump(USER_PREFS, f, indent=2)
+        print("[INFO] Saved user preferences.")
     except Exception as e:
         print(f"[ERROR] Could not save preferences: {e}")
 
@@ -58,8 +60,8 @@ def expand_article(summary):
         return "Error expanding article."
 
 def get_curated_news(filters, page=1, username=None):
-    if not filters or len(filters) < 1:
-        return []
+    if not filters:
+        filters = ['trending']
 
     query = " OR ".join(filters)
     params = {
@@ -68,7 +70,7 @@ def get_curated_news(filters, page=1, username=None):
         "page": int(page),
         "sortBy": "publishedAt",
         "apiKey": NEWS_API_KEY,
-        "language": "en",
+        "language": "en"
     }
 
     try:
@@ -81,16 +83,16 @@ def get_curated_news(filters, page=1, username=None):
 
     curated = []
     for article in articles:
-        title = article.get("title", "")
-        desc = article.get("description", "")
-        urlToImage = article.get("urlToImage")
+        title = article.get("title") or article.get("source", {}).get("name", "Untitled")
+        desc = article.get("description") or article.get("content") or ""
+        image = article.get("urlToImage")
         if not title and not desc:
             continue
         summary = summarize_article(title, desc, username=username)
         curated.append({
             "title": title,
             "summary": summary,
-            "thumbnail": urlToImage
+            "image": image
         })
 
     return curated
@@ -98,7 +100,7 @@ def get_curated_news(filters, page=1, username=None):
 def get_search_news(topic, page=1, username=None):
     params = {
         "qInTitle": topic,
-        "pageSize": 10,
+        "pageSize": 5,
         "page": int(page),
         "sortBy": "relevancy",
         "apiKey": NEWS_API_KEY,
@@ -108,7 +110,8 @@ def get_search_news(topic, page=1, username=None):
     try:
         res = requests.get(BASE_URL, params=params)
         res.raise_for_status()
-        articles = res.json().get("articles", [])
+        data = res.json()
+        articles = data.get("articles", [])
     except Exception as e:
         print(f"[ERROR] News API error (search): {e}")
         return []
@@ -117,12 +120,12 @@ def get_search_news(topic, page=1, username=None):
     for article in articles:
         title = article.get("title", "")
         desc = article.get("description", "")
-        urlToImage = article.get("urlToImage")
+        image = article.get("urlToImage")
         summary = summarize_article(title, desc, username=username)
         results.append({
             "title": title,
             "summary": summary,
-            "thumbnail": urlToImage
+            "image": image
         })
 
     return results
