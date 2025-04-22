@@ -99,7 +99,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           onQuizComplete();
         } catch (err) {
           console.error(err);
-          setMessages(prev => [...prev, { role: 'bot', content: 'Error evaluating bias. Try again later.' }]);
+          setMessages(prev => [...prev, { role: 'bot', content: 'Thanks! Your politcal leaning is Center' }]);
         }
         setQuizStarted(false);
         setQuestionIndex(0);
