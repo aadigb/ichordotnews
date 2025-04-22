@@ -35,11 +35,11 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           setQuizCompleted(true);
         } else {
           setMessages([
-            { role: 'bot', content: 'Do you want to take a preference test to customize your article's style, or type "no" if you want unbiased?' }
+            { role: 'bot', content: "Do you want to take a preference test to customize your article's style, or type 'no' if you want unbiased?" }
           ]);
         }
       } catch {
-        setMessages([{ role: 'bot', content: 'Do you want to take a preference test to customize your article's style, or type "no" if you want unbiased?' }]);
+        setMessages([{ role: 'bot', content: "Do you want to take a preference test to customize your article's style, or type 'no' if you want unbiased?" }]);
       }
     };
     checkStatus();
@@ -66,7 +66,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
     }
 
     if (!quizStarted && !quizCompleted) {
-      if (['no', 'nah'].includes(userInput.toLowerCase())) {
+      if (["no", "nah"].includes(userInput.toLowerCase())) {
         setMessages(prev => [...prev, { role: 'bot', content: "Okay! Feel free to ask me anything else." }]);
         setQuizCompleted(true);
       } else {
@@ -97,16 +97,13 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           ]);
           setQuizCompleted(true);
           onQuizComplete();
-     } catch (err) {
-  console.error(err);
-  setMessages(prev => [
-    ...prev,
-    {
-      role: 'bot',
-      content: 'Thanks! Your political leaning is: center',
-    },
-  ]);
-}
+        } catch (err) {
+          console.error(err);
+          setMessages(prev => [
+            ...prev,
+            { role: 'bot', content: 'Thanks! Your political leaning is: center' }
+          ]);
+        }
 
         setQuizStarted(false);
         setQuestionIndex(0);
@@ -124,7 +121,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
         setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
       } catch (err) {
         console.error(err);
-        setMessages(prev => [...prev, { role: 'bot', content: 'Oops! Something went wrong.' }]);
+        setMessages(prev => [...prev, { role: 'bot', content: 'I dont have the capibilities to assist you yet' }]);
       }
     }
   };
@@ -141,7 +138,7 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           className="text-sm text-blue-500 hover:underline"
           onClick={() => setIsMinimized(!isMinimized)}
         >
-          {isMinimized ? '🗖 Open' : '🗕 Minimize'}
+          {isMinimized ? '🗆 Open' : '🗅 Minimize'}
         </button>
       </div>
 
