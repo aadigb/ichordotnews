@@ -97,10 +97,16 @@ export default function PetrichorChat({ isDarkMode, username, onQuizComplete }) 
           ]);
           setQuizCompleted(true);
           onQuizComplete();
-       } catch (err) {
-    console.error(err);
-      setMessages(prev => [...prev, { role: 'bot', content: 'Thanks! Your political leaning is: center' }]);
-    }
+     } catch (err) {
+  console.error(err);
+  setMessages(prev => [
+    ...prev,
+    {
+      role: 'bot',
+      content: 'Thanks! Your political leaning is: center',
+    },
+  ]);
+}
 
         setQuizStarted(false);
         setQuestionIndex(0);
