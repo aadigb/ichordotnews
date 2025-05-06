@@ -115,7 +115,7 @@ export default function Home() {
     </div>
   );
 
-  const presetCategories = ['US', 'World', 'Politics', 'Health', 'Entertainment', 'Sports', 'Science'];
+  const presetCategories = ['US', 'World', 'Politics', 'Health', 'Entertainment', 'Sports'];
 
   if (showLogin) {
     return (
